@@ -1,0 +1,7 @@
+/node_modules
+/dist
+
+/src/accounts.json
+/src/config.json
+
+/sessions
