@@ -11,18 +11,18 @@ services:
       - ./sessions:/usr/src/microsoft-rewards-script/dist/browser/sessions # Optional, saves your login session
 
     environment:
-      TZ: "America/Toronto" # Set your timezone for proper scheduling
+      TZ: "Asia/Shanghai" # Set your timezone for proper scheduling
       NODE_ENV: "production"
       CRON_SCHEDULE: "0 7,16,20 * * *" # Customize your schedule, use crontab.guru for formatting
       RUN_ON_START: "true" # Runs the script immediately on container startup
 
       # Add scheduled start-time randomization (uncomment to customize or disable, default: enabled)
-      #MIN_SLEEP_MINUTES: "5"
-      #MAX_SLEEP_MINUTES: "50"
+      MIN_SLEEP_MINUTES: "5"
+      MAX_SLEEP_MINUTES: "50"
       SKIP_RANDOM_SLEEP: "false"
 
       # Optionally set how long to wait before killing a stuck script run (prevents blocking future runs, default: 8 hours)
-      #STUCK_PROCESS_TIMEOUT_HOURS: "8"
+      STUCK_PROCESS_TIMEOUT_HOURS: "8"
 
     # Optional resource limits for the container
     mem_limit: 4g
