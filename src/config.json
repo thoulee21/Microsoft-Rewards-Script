@@ -18,10 +18,10 @@
         "doDailyCheckIn": true,
         "doReadToEarn": true
     },
-    "searchOnBingLocalQueries": true,
+    "searchOnBingLocalQueries": false,
     "globalTimeout": "30s",
     "searchSettings": {
-        "useGeoLocaleQueries": true,
+        "useGeoLocaleQueries": false,
         "scrollRandomResults": true,
         "clickRandomResults": true,
         "searchDelay": {
