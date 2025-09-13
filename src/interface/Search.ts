@@ -1,4 +1,4 @@
 export interface GoogleSearch {
-    topic: string;
-    related: string[];
+  topic: string;
+  related: string[];
 }

@@ -60,7 +60,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "Logged into Microsoft successfully"
+          "Logged into Microsoft successfully",
         );
       } else {
         this.bot.log(this.bot.isMobile, "LOGIN", "Already logged in");
@@ -77,14 +77,14 @@ export class Login {
         this.bot.config.sessionPath,
         page.context(),
         email,
-        this.bot.isMobile
+        this.bot.isMobile,
       );
 
       // We're done logging in
       this.bot.log(
         this.bot.isMobile,
         "LOGIN",
-        "Logged in successfully, saved login session!"
+        "Logged in successfully, saved login session!",
       );
     } catch (error) {
       // Throw and don't continue
@@ -92,7 +92,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
   }
@@ -116,7 +116,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN",
         "An error occurred: " + error,
-        "error"
+        "error",
       );
     }
   }
@@ -137,7 +137,7 @@ export class Login {
           this.bot.isMobile,
           "LOGIN",
           "Email field not found",
-          "warn"
+          "warn",
         );
         return;
       }
@@ -152,7 +152,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "Email already prefilled by Microsoft"
+          "Email already prefilled by Microsoft",
         );
       } else {
         // Else clear and fill email
@@ -174,7 +174,7 @@ export class Login {
           this.bot.isMobile,
           "LOGIN",
           "Next button not found after email entry",
-          "warn"
+          "warn",
         );
       }
     } catch (error) {
@@ -182,7 +182,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN",
         `Email entry failed: ${error}`,
-        "error"
+        "error",
       );
     }
   }
@@ -202,7 +202,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "No 2FA skip button found, proceeding with password entry"
+          "No 2FA skip button found, proceeding with password entry",
         );
       }
       const viewFooter = await page
@@ -215,7 +215,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          'Page "Get a code to sign in" found by "viewFooter"'
+          'Page "Get a code to sign in" found by "viewFooter"',
         );
 
         const otherWaysButton = await viewFooter.$('span[role="button"]');
@@ -242,7 +242,7 @@ export class Login {
           this.bot.isMobile,
           "LOGIN",
           "Password field not found, possibly 2FA required",
-          "warn"
+          "warn",
         );
         await this.handle2FA(page);
         return;
@@ -265,14 +265,14 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "Password entered successfully"
+          "Password entered successfully",
         );
       } else {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
           "Next button not found after password entry",
-          "warn"
+          "warn",
         );
       }
     } catch (error) {
@@ -280,7 +280,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN",
         `Password entry failed: ${error}`,
-        "error"
+        "error",
       );
       await this.handle2FA(page);
     }
@@ -305,7 +305,7 @@ export class Login {
     try {
       const element = await page.waitForSelector(
         '#displaySign, div[data-testid="displaySign"]>span',
-        { state: "visible", timeout: 2000 }
+        { state: "visible", timeout: 2000 },
       );
       return await element.textContent();
     } catch {
@@ -315,14 +315,14 @@ export class Login {
           "LOGIN",
           "Script running in parallel, can only send 1 2FA request per account at a time!",
           "log",
-          "yellow"
+          "yellow",
         );
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
           "Trying again in 60 seconds! Please wait...",
           "log",
-          "yellow"
+          "yellow",
         );
 
         // eslint-disable-next-line no-constant-condition
@@ -330,7 +330,7 @@ export class Login {
           const button = await page
             .waitForSelector(
               'button[aria-describedby="pushNotificationsTitle errorDescription"]',
-              { state: "visible", timeout: 2000 }
+              { state: "visible", timeout: 2000 },
             )
             .catch(() => null);
           if (button) {
@@ -350,7 +350,7 @@ export class Login {
       await this.bot.utils.wait(2000);
       const element = await page.waitForSelector(
         '#displaySign, div[data-testid="displaySign"]>span',
-        { state: "visible", timeout: 2000 }
+        { state: "visible", timeout: 2000 },
       );
       return await element.textContent();
     }
@@ -363,12 +363,12 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          `Press the number ${numberToPress} on your Authenticator app to approve the login`
+          `Press the number ${numberToPress} on your Authenticator app to approve the login`,
         );
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          'If you press the wrong number or the "DENY" button, try again in 60 seconds'
+          'If you press the wrong number or the "DENY" button, try again in 60 seconds',
         );
 
         await page.waitForSelector('form[name="f1"]', {
@@ -379,14 +379,14 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "Login successfully approved!"
+          "Login successfully approved!",
         );
         break;
       } catch {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN",
-          "The code is expired. Trying to get a new code..."
+          "The code is expired. Trying to get a new code...",
         );
         // await page.click('button[aria-describedby="pushNotificationsTitle errorDescription"]')
         const primaryButton = await page
@@ -407,7 +407,7 @@ export class Login {
     this.bot.log(
       this.bot.isMobile,
       "LOGIN",
-      "SMS 2FA code required. Waiting for user input..."
+      "SMS 2FA code required. Waiting for user input...",
     );
 
     const code = await new Promise<string>((resolve) => {
@@ -432,7 +432,7 @@ export class Login {
       authorizeUrl.searchParams.append("scope", this.scope);
       authorizeUrl.searchParams.append(
         "state",
-        crypto.randomBytes(16).toString("hex")
+        crypto.randomBytes(16).toString("hex"),
       );
       authorizeUrl.searchParams.append("access_type", "offline_access");
       authorizeUrl.searchParams.append("login_hint", email);
@@ -440,7 +440,7 @@ export class Login {
       this.bot.log(
         this.bot.isMobile,
         "LOGIN-APP",
-        "Navigating to authorization URL..."
+        "Navigating to authorization URL...",
       );
       await page.goto(authorizeUrl.href, {
         waitUntil: "domcontentloaded",
@@ -456,7 +456,7 @@ export class Login {
       this.bot.log(
         this.bot.isMobile,
         "LOGIN-APP",
-        "Waiting for authorization..."
+        "Waiting for authorization...",
       );
 
       // 添加超时机制，避免无限等待
@@ -468,7 +468,7 @@ export class Login {
         // 检查是否超时
         if (Date.now() - startTime > maxWaitTime) {
           throw new Error(
-            "Authorization timeout: Failed to get authorization code within 2 minutes"
+            "Authorization timeout: Failed to get authorization code within 2 minutes",
           );
         }
 
@@ -483,7 +483,7 @@ export class Login {
             this.bot.log(
               this.bot.isMobile,
               "LOGIN-APP",
-              `Authorization code received: ${code.substring(0, 10)}...`
+              `Authorization code received: ${code.substring(0, 10)}...`,
             );
             break;
           } else {
@@ -491,7 +491,7 @@ export class Login {
               this.bot.isMobile,
               "LOGIN-APP",
               "Reached redirect URL but no authorization code found",
-              "warn"
+              "warn",
             );
           }
         }
@@ -505,7 +505,7 @@ export class Login {
           const errorDescription =
             currentUrl.searchParams.get("error_description");
           throw new Error(
-            `OAuth authorization failed: ${error} - ${errorDescription}`
+            `OAuth authorization failed: ${error} - ${errorDescription}`,
           );
         }
 
@@ -517,7 +517,7 @@ export class Login {
           this.bot.log(
             this.bot.isMobile,
             "LOGIN-APP",
-            "Detected login page, may need to re-authenticate"
+            "Detected login page, may need to re-authenticate",
           );
           // 尝试处理登录提示
           await this.dismissLoginMessages(page);
@@ -531,7 +531,7 @@ export class Login {
           this.bot.log(
             this.bot.isMobile,
             "LOGIN-APP",
-            "Detected Passkey interrupt page, attempting to skip..."
+            "Detected Passkey interrupt page, attempting to skip...",
           );
 
           // 尝试跳过 Passkey 设置
@@ -549,7 +549,7 @@ export class Login {
               this.bot.isMobile,
               "LOGIN-APP",
               "Page did not change after Passkey handling, continuing...",
-              "warn"
+              "warn",
             );
           }
           continue;
@@ -558,7 +558,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "LOGIN-APP",
-          `Current URL: ${currentUrl.hostname}${currentUrl.pathname}`
+          `Current URL: ${currentUrl.hostname}${currentUrl.pathname}`,
         );
         await this.bot.utils.wait(3000);
       }
@@ -588,7 +588,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN-APP",
         `Failed to get mobile access token: ${error}`,
-        "error"
+        "error",
       );
       throw error;
     }
@@ -619,7 +619,7 @@ export class Login {
     this.bot.log(
       this.bot.isMobile,
       "LOGIN",
-      "Successfully logged into the rewards portal"
+      "Successfully logged into the rewards portal",
     );
   }
 
@@ -637,7 +637,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "DISMISS-ALL-LOGIN-MESSAGES",
-          'Dismissed "Use Passkey" modal via data-testid=secondaryButton'
+          'Dismissed "Use Passkey" modal via data-testid=secondaryButton',
         );
         await page.waitForTimeout(500);
         handledPasskey = true;
@@ -669,7 +669,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "DISMISS-ALL-LOGIN-MESSAGES",
-          "Dismissed Passkey screen by title + secondaryButton"
+          "Dismissed Passkey screen by title + secondaryButton",
         );
         await page.waitForTimeout(500);
         handledPasskey = true;
@@ -679,7 +679,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "DISMISS-ALL-LOGIN-MESSAGES",
-          "Dismissed Passkey screen by button pair heuristic"
+          "Dismissed Passkey screen by button pair heuristic",
         );
         await page.waitForTimeout(500);
         handledPasskey = true;
@@ -687,7 +687,7 @@ export class Login {
         // Last-resort fallbacks by text and close icon
         const skipByText = await page
           .locator(
-            'xpath=//button[contains(normalize-space(.), "Skip for now")]'
+            'xpath=//button[contains(normalize-space(.), "Skip for now")]',
           )
           .first();
         if (await skipByText.isVisible().catch(() => false)) {
@@ -695,7 +695,7 @@ export class Login {
           this.bot.log(
             this.bot.isMobile,
             "DISMISS-ALL-LOGIN-MESSAGES",
-            "Dismissed Passkey screen via text fallback"
+            "Dismissed Passkey screen via text fallback",
           );
           await page.waitForTimeout(500);
           handledPasskey = true;
@@ -706,7 +706,7 @@ export class Login {
             this.bot.log(
               this.bot.isMobile,
               "DISMISS-ALL-LOGIN-MESSAGES",
-              "Attempted to close Passkey screen via close button"
+              "Attempted to close Passkey screen via close button",
             );
             await page.waitForTimeout(500);
           }
@@ -726,7 +726,7 @@ export class Login {
         this.bot.log(
           this.bot.isMobile,
           "DISMISS-ALL-LOGIN-MESSAGES",
-          'Dismissed "Keep me signed in" modal'
+          'Dismissed "Keep me signed in" modal',
         );
         await page.waitForTimeout(500);
       }
@@ -737,7 +737,7 @@ export class Login {
     this.bot.log(
       this.bot.isMobile,
       "LOGIN-APP",
-      "Handling Passkey interrupt page..."
+      "Handling Passkey interrupt page...",
     );
 
     try {
@@ -766,7 +766,7 @@ export class Login {
           this.bot.log(
             this.bot.isMobile,
             "LOGIN-APP",
-            `Clicked skip button with selector: ${selector}`
+            `Clicked skip button with selector: ${selector}`,
           );
           await this.bot.utils.wait(2000);
           return;
@@ -791,7 +791,7 @@ export class Login {
             this.bot.log(
               this.bot.isMobile,
               "LOGIN-APP",
-              `Clicked skip element with text: ${text}`
+              `Clicked skip element with text: ${text}`,
             );
             await this.bot.utils.wait(2000);
             return;
@@ -819,7 +819,7 @@ export class Login {
           this.bot.log(
             this.bot.isMobile,
             "LOGIN-APP",
-            `Clicked close button with selector: ${selector}`
+            `Clicked close button with selector: ${selector}`,
           );
           await this.bot.utils.wait(2000);
           return;
@@ -830,7 +830,7 @@ export class Login {
       this.bot.log(
         this.bot.isMobile,
         "LOGIN-APP",
-        "No skip button found, attempting to reload page..."
+        "No skip button found, attempting to reload page...",
       );
       await page.reload({ waitUntil: "domcontentloaded" });
       await this.bot.utils.wait(3000);
@@ -839,7 +839,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN-APP",
         `Error handling Passkey interrupt: ${error}`,
-        "warn"
+        "warn",
       );
     }
   }
@@ -848,7 +848,7 @@ export class Login {
     try {
       this.bot.log(this.bot.isMobile, "LOGIN-BING", "Verifying Bing login");
       await page.goto(
-        "https://www.bing.com/fd/auth/signin?action=interactive&provider=windows_live_id&return_url=https%3A%2F%2Fwww.bing.com%2F"
+        "https://www.bing.com/fd/auth/signin?action=interactive&provider=windows_live_id&return_url=https%3A%2F%2Fwww.bing.com%2F",
       );
 
       const maxIterations = 5;
@@ -868,7 +868,7 @@ export class Login {
             this.bot.log(
               this.bot.isMobile,
               "LOGIN-BING",
-              "Bing login verification passed!"
+              "Bing login verification passed!",
             );
             break;
           }
@@ -881,7 +881,7 @@ export class Login {
         this.bot.isMobile,
         "LOGIN-BING",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
   }
@@ -909,7 +909,7 @@ export class Login {
         this.bot.isMobile,
         "CHECK-LOCKED",
         'This account has been locked! Remove the account from "accounts.json" and restart!',
-        "error"
+        "error",
       );
     }
   }

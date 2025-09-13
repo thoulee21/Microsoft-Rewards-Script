@@ -61,7 +61,7 @@ export async function getChromeVersion(isMobile: boolean): Promise<string> {
       isMobile,
       "USERAGENT-CHROME-VERSION",
       "An error occurred:" + error + ", using default version",
-      "warn"
+      "warn",
     );
     return "140.0.7339.82";
   }
@@ -84,7 +84,7 @@ export async function getEdgeVersions(isMobile: boolean) {
       android: stable.Releases.find((x) => x.Platform == "Android")
         ?.ProductVersion,
       windows: stable.Releases.find(
-        (x) => x.Platform == "Windows" && x.Architecture == "x64"
+        (x) => x.Platform == "Windows" && x.Architecture == "x64",
       )?.ProductVersion,
     };
   } catch (error) {
@@ -92,7 +92,7 @@ export async function getEdgeVersions(isMobile: boolean) {
       isMobile,
       "USERAGENT-EDGE-VERSION",
       "An error occurred:" + error,
-      "error"
+      "error",
     );
   }
 }
@@ -134,7 +134,7 @@ export async function getAppComponents(isMobile: boolean) {
 
 export async function updateFingerprintUserAgent(
   fingerprint: BrowserFingerprintWithHeaders,
-  isMobile: boolean
+  isMobile: boolean,
 ): Promise<BrowserFingerprintWithHeaders> {
   try {
     const userAgentData = await getUserAgent(isMobile);
@@ -147,16 +147,14 @@ export async function updateFingerprintUserAgent(
     fingerprint.fingerprint.navigator.appVersion =
       userAgentData.userAgent.replace(
         `${fingerprint.fingerprint.navigator.appCodeName}/`,
-        ""
+        "",
       );
 
     fingerprint.headers["user-agent"] = userAgentData.userAgent;
-    fingerprint.headers[
-      "sec-ch-ua"
-    ] = `"Microsoft Edge";v="${componentData.edge_major_version}", "Not=A?Brand";v="${componentData.not_a_brand_major_version}", "Chromium";v="${componentData.chrome_major_version}"`;
-    fingerprint.headers[
-      "sec-ch-ua-full-version-list"
-    ] = `"Microsoft Edge";v="${componentData.edge_version}", "Not=A?Brand";v="${componentData.not_a_brand_version}", "Chromium";v="${componentData.chrome_version}"`;
+    fingerprint.headers["sec-ch-ua"] =
+      `"Microsoft Edge";v="${componentData.edge_major_version}", "Not=A?Brand";v="${componentData.not_a_brand_major_version}", "Chromium";v="${componentData.chrome_major_version}"`;
+    fingerprint.headers["sec-ch-ua-full-version-list"] =
+      `"Microsoft Edge";v="${componentData.edge_version}", "Not=A?Brand";v="${componentData.not_a_brand_version}", "Chromium";v="${componentData.chrome_version}"`;
 
     /*
         Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36 EdgA/129.0.0.0
@@ -173,7 +171,7 @@ export async function updateFingerprintUserAgent(
       isMobile,
       "USER-AGENT-UPDATE",
       "An error occurred:" + error,
-      "error"
+      "error",
     );
   }
 }

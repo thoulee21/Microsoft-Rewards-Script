@@ -1,23 +1,22 @@
-import axios from 'axios'
+import axios from "axios";
 
-
-import { Config } from '../interface/Config'
+import { Config } from "../interface/Config";
 
 export async function Webhook(configData: Config, content: string) {
-    const webhook = configData.webhook
+  const webhook = configData.webhook;
 
-    if (!webhook.enabled || webhook.url.length < 10) return
+  if (!webhook.enabled || webhook.url.length < 10) return;
 
-    const request = {
-        method: 'POST',
-        url: webhook.url,
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        data: {
-            'content': content
-        }
-    }
+  const request = {
+    method: "POST",
+    url: webhook.url,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: {
+      content: content,
+    },
+  };
 
-    await axios(request).catch(() => { })
+  await axios(request).catch(() => {});
 }

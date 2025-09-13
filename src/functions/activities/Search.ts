@@ -24,7 +24,7 @@ export class Search extends Workers {
       this.bot.log(
         this.bot.isMobile,
         "SEARCH-BING",
-        "Bing searches have already been completed"
+        "Bing searches have already been completed",
       );
       return;
     }
@@ -33,7 +33,7 @@ export class Search extends Workers {
     let googleSearchQueries = await this.getGoogleTrends(
       this.bot.config.searchSettings.useGeoLocaleQueries
         ? data.userProfile.attributes.country
-        : "US"
+        : "US",
     );
     googleSearchQueries = this.bot.utils.shuffleArray(googleSearchQueries);
 
@@ -64,7 +64,7 @@ export class Search extends Workers {
       this.bot.log(
         this.bot.isMobile,
         "SEARCH-BING",
-        `${missingPoints} Points Remaining | Query: ${query}`
+        `${missingPoints} Points Remaining | Query: ${query}`,
       );
 
       searchCounters = await this.bingSearch(page, query);
@@ -90,7 +90,7 @@ export class Search extends Workers {
           this.bot.isMobile,
           "SEARCH-BING",
           "Search didn't gain point for 5 iterations, likely bad User-Agent",
-          "warn"
+          "warn",
         );
         break;
       }
@@ -101,7 +101,7 @@ export class Search extends Workers {
           this.bot.isMobile,
           "SEARCH-BING",
           "Search didn't gain point for 10 iterations aborting searches",
-          "warn"
+          "warn",
         );
         maxLoop = 0; // Reset to 0 so we can retry with related searches below
         break;
@@ -118,7 +118,7 @@ export class Search extends Workers {
       this.bot.log(
         this.bot.isMobile,
         "SEARCH-BING",
-        `Search completed but we're missing ${missingPoints} points, generating extra searches`
+        `Search completed but we're missing ${missingPoints} points, generating extra searches`,
       );
 
       let i = 0;
@@ -133,7 +133,7 @@ export class Search extends Workers {
             this.bot.log(
               this.bot.isMobile,
               "SEARCH-BING-EXTRA",
-              `${missingPoints} Points Remaining | Query: ${term}`
+              `${missingPoints} Points Remaining | Query: ${term}`,
             );
 
             searchCounters = await this.bingSearch(page, term);
@@ -160,7 +160,7 @@ export class Search extends Workers {
                 this.bot.isMobile,
                 "SEARCH-BING-EXTRA",
                 "Search didn't gain point for 5 iterations aborting searches",
-                "warn"
+                "warn",
               );
               return;
             }
@@ -205,9 +205,8 @@ export class Search extends Workers {
         await this.bot.utils.wait(3000);
 
         // Bing.com in Chrome opens a new tab when searching
-        const resultPage = await this.bot.browser.utils.getLatestTab(
-          searchPage
-        );
+        const resultPage =
+          await this.bot.browser.utils.getLatestTab(searchPage);
         this.searchPageURL = new URL(resultPage.url()).href; // Set the results page
 
         await this.bot.browser.utils.reloadBadPage(resultPage);
@@ -227,13 +226,13 @@ export class Search extends Workers {
           Math.floor(
             this.bot.utils.randomNumber(
               this.bot.utils.stringToMs(
-                this.bot.config.searchSettings.searchDelay.min
+                this.bot.config.searchSettings.searchDelay.min,
               ),
               this.bot.utils.stringToMs(
-                this.bot.config.searchSettings.searchDelay.max
-              )
-            )
-          )
+                this.bot.config.searchSettings.searchDelay.max,
+              ),
+            ),
+          ),
         );
 
         return await this.bot.browser.func.getSearchPoints();
@@ -243,7 +242,7 @@ export class Search extends Workers {
             this.bot.isMobile,
             "SEARCH-BING",
             "Failed after 5 retries... An error occurred:" + error,
-            "error"
+            "error",
           );
           break;
         }
@@ -252,13 +251,13 @@ export class Search extends Workers {
           this.bot.isMobile,
           "SEARCH-BING",
           "Search failed, An error occurred:" + error,
-          "error"
+          "error",
         );
         this.bot.log(
           this.bot.isMobile,
           "SEARCH-BING",
           `Retrying search, attempt ${i}/5`,
-          "warn"
+          "warn",
         );
 
         // Reset the tabs
@@ -273,19 +272,19 @@ export class Search extends Workers {
       this.bot.isMobile,
       "SEARCH-BING",
       "Search failed after 5 retries, ending",
-      "error"
+      "error",
     );
     return await this.bot.browser.func.getSearchPoints();
   }
 
   private async getGoogleTrends(
-    geoLocale: string = "US"
+    geoLocale: string = "US",
   ): Promise<GoogleSearch[]> {
     const queryTerms: GoogleSearch[] = [];
     this.bot.log(
       this.bot.isMobile,
       "SEARCH-BING-TRENDS",
-      `Generating search queries from Bing trends | GeoLocale: ${geoLocale}`
+      `Generating search queries from Bing trends | GeoLocale: ${geoLocale}`,
     );
 
     try {
@@ -299,7 +298,7 @@ export class Search extends Workers {
 
       const response = await this.bot.axios.request(
         request,
-        this.bot.config.proxy.proxyGoogleTrends
+        this.bot.config.proxy.proxyGoogleTrends,
       );
       const responseData = response.data;
 
@@ -317,7 +316,7 @@ export class Search extends Workers {
         (item: any) =>
           item.typeName === "TrendingNow" &&
           item.items &&
-          Array.isArray(item.items)
+          Array.isArray(item.items),
       );
 
       if (!trendingData || !trendingData.items) {
@@ -331,7 +330,7 @@ export class Search extends Workers {
           this.bot.isMobile,
           "SEARCH-BING-TRENDS",
           "Insufficient search queries from Bing trends",
-          "warn"
+          "warn",
         );
       }
 
@@ -351,14 +350,14 @@ export class Search extends Workers {
       this.bot.log(
         this.bot.isMobile,
         "SEARCH-BING-TRENDS",
-        `Generated ${queryTerms.length} search queries from Bing trends`
+        `Generated ${queryTerms.length} search queries from Bing trends`,
       );
     } catch (error) {
       this.bot.log(
         this.bot.isMobile,
         "SEARCH-BING-TRENDS",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
 
@@ -377,7 +376,7 @@ export class Search extends Workers {
 
       const response = await this.bot.axios.request(
         request,
-        this.bot.config.proxy.proxyBingTerms
+        this.bot.config.proxy.proxyBingTerms,
       );
 
       return response.data[1] as string[];
@@ -386,7 +385,7 @@ export class Search extends Workers {
         this.bot.isMobile,
         "SEARCH-BING-RELATED",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
 
@@ -398,7 +397,7 @@ export class Search extends Workers {
       const viewportHeight = await page.evaluate(() => window.innerHeight);
       const totalHeight = await page.evaluate(() => document.body.scrollHeight);
       const randomScrollPosition = Math.floor(
-        Math.random() * (totalHeight - viewportHeight)
+        Math.random() * (totalHeight - viewportHeight),
       );
 
       await page.evaluate((scrollPos) => {
@@ -409,7 +408,7 @@ export class Search extends Workers {
         this.bot.isMobile,
         "SEARCH-RANDOM-SCROLL",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
   }
@@ -446,7 +445,7 @@ export class Search extends Workers {
         this.bot.isMobile,
         "SEARCH-RANDOM-CLICK",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
   }
@@ -465,7 +464,7 @@ export class Search extends Workers {
           "SEARCH-CLOSE-TABS",
           `More than 2 were open, closed the last tab: "${
             new URL(lastTab.url()).host
-          }"`
+          }"`,
         );
       } else if (tabs.length === 1) {
         // If only 1 tab is open, open a new one to search in
@@ -480,14 +479,14 @@ export class Search extends Workers {
         this.bot.log(
           this.bot.isMobile,
           "SEARCH-CLOSE-TABS",
-          "There was only 1 tab open, crated a new one"
+          "There was only 1 tab open, crated a new one",
         );
       } else {
         // Else reset the last tab back to the search listing or Bing.com
 
         lastTab = await this.bot.browser.utils.getLatestTab(lastTab);
         await lastTab.goto(
-          this.searchPageURL ? this.searchPageURL : this.bingHome
+          this.searchPageURL ? this.searchPageURL : this.bingHome,
         );
       }
     } catch (error) {
@@ -495,7 +494,7 @@ export class Search extends Workers {
         this.bot.isMobile,
         "SEARCH-CLOSE-TABS",
         "An error occurred:" + error,
-        "error"
+        "error",
       );
     }
   }

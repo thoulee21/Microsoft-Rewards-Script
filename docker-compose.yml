@@ -1,7 +1,7 @@
 services:
   microsoft-rewards-script:
     build: .
-    image: crpi-bnpe6pd4urnqmcm0-vpc.cn-shanghai.personal.cr.aliyuncs.com/thoulee/microsoft-rewards-script
+    image: crpi-bnpe6pd4urnqmcm0.cn-shanghai.personal.cr.aliyuncs.com/thoulee/microsoft-rewards-script
     container_name: microsoft-rewards-script
     restart: unless-stopped
 
@@ -37,7 +37,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
-    
+
     # Security hardening
     security_opt:
       - no-new-privileges:true
