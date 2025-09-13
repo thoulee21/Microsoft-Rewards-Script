@@ -29,7 +29,7 @@ RUN npm run build
 ###############################################################################
 # Stage 2: Runtime (Playwright image)
 ###############################################################################
-FROM mcr.microsoft.com/playwright:v1.52.0-jammy
+FROM mcr.microsoft.com/playwright:v1.52.0-noble
 
 WORKDIR /usr/src/microsoft-rewards-script
 
