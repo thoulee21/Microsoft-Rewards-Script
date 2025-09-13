@@ -483,7 +483,7 @@ export class Login {
             this.bot.log(
               this.bot.isMobile,
               "LOGIN-APP",
-              `Authorization code received: ${code.substring(0, 10)}...`,
+              `Authorization code received: ${code.substring(0, 10)}`,
             );
             break;
           } else {
