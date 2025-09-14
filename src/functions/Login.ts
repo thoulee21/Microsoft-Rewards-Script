@@ -206,7 +206,9 @@ export class Login {
         );
       }
       const viewFooter = await page
-        .waitForSelector("#view > div > span:nth-child(6)", { timeout: 2000 })
+        .waitForSelector("#view > div > span:nth-child(6)", {
+          timeout: 2000,
+        })
         .catch(() => null);
       const passwordField1 = await page
         .waitForSelector(passwordInputSelector, { timeout: 5000 })
@@ -460,7 +462,9 @@ export class Login {
       );
 
       // 添加超时机制，避免无限等待
-      const maxWaitTime = 120000; // 2分钟超时
+      const maxWaitTime = this.bot.utils.stringToMs(
+        this.bot.config?.globalTimeout ?? 120000,
+      );
       const startTime = Date.now();
 
       // eslint-disable-next-line no-constant-condition
@@ -468,7 +472,9 @@ export class Login {
         // 检查是否超时
         if (Date.now() - startTime > maxWaitTime) {
           throw new Error(
-            "Authorization timeout: Failed to get authorization code within 2 minutes",
+            `Authorization timeout: Failed to get authorization code within ${
+              maxWaitTime / 1000
+            } seconds`,
           );
         }
 
@@ -627,7 +633,9 @@ export class Login {
     // Passkey / Windows Hello prompt ("Sign in faster"), click "Skip for now"
     // Primary heuristics: presence of biometric video OR title mentions passkey/sign in faster
     const passkeyVideo = await page
-      .waitForSelector('[data-testid="biometricVideo"]', { timeout: 2000 })
+      .waitForSelector('[data-testid="biometricVideo"]', {
+        timeout: 2000,
+      })
       .catch(() => null);
     let handledPasskey = false;
     if (passkeyVideo) {
