@@ -1,43 +1,43 @@
 {
-  "baseURL": "https://rewards.bing.com",
-  "sessionPath": "sessions",
-  "headless": true,
-  "parallel": false,
-  "runOnZeroPoints": false,
-  "clusters": 1,
-  "saveFingerprint": {
-    "mobile": false,
-    "desktop": false
-  },
-  "workers": {
-    "doDailySet": true,
-    "doMorePromotions": true,
-    "doPunchCards": true,
-    "doDesktopSearch": true,
-    "doMobileSearch": true,
-    "doDailyCheckIn": true,
-    "doReadToEarn": true
-  },
-  "searchOnBingLocalQueries": false,
-  "globalTimeout": "20s",
-  "searchSettings": {
-    "useGeoLocaleQueries": true,
-    "scrollRandomResults": true,
-    "clickRandomResults": true,
-    "searchDelay": {
-      "min": "5s",
-      "max": "10s"
+    "baseURL": "https://rewards.bing.com",
+    "sessionPath": "sessions",
+    "headless": true,
+    "parallel": false,
+    "runOnZeroPoints": false,
+    "clusters": 1,
+    "saveFingerprint": {
+        "mobile": false,
+        "desktop": false
     },
-    "retryMobileSearchAmount": 2
-  },
-  "logExcludeFunc": ["SEARCH-CLOSE-TABS"],
-  "webhookLogExcludeFunc": ["SEARCH-CLOSE-TABS"],
-  "proxy": {
-    "proxyGoogleTrends": true,
-    "proxyBingTerms": true
-  },
-  "webhook": {
-    "enabled": false,
-    "url": ""
-  }
+    "workers": {
+        "doDailySet": true,
+        "doMorePromotions": true,
+        "doPunchCards": true,
+        "doDesktopSearch": true,
+        "doMobileSearch": true,
+        "doDailyCheckIn": true,
+        "doReadToEarn": true
+    },
+    "searchOnBingLocalQueries": false,
+    "globalTimeout": "20s",
+    "searchSettings": {
+        "useGeoLocaleQueries": true,
+        "scrollRandomResults": true,
+        "clickRandomResults": true,
+        "searchDelay": {
+            "min": "5s",
+            "max": "10s"
+        },
+        "retryMobileSearchAmount": 2
+    },
+    "logExcludeFunc": ["SEARCH-CLOSE-TABS"],
+    "webhookLogExcludeFunc": ["SEARCH-CLOSE-TABS"],
+    "proxy": {
+        "proxyGoogleTrends": true,
+        "proxyBingTerms": true
+    },
+    "webhook": {
+        "enabled": false,
+        "url": ""
+    }
 }

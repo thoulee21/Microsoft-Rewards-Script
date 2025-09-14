@@ -49,10 +49,10 @@
 
 1. **设置您的时区：**调整 `TZ` 变量以确保正确的调度。
 2. **自定义调度：**
-   - 修改 `CRON_SCHEDULE` 设置运行时间。使用 [crontab.guru](https://crontab.guru) 获取帮助。
-   - **注意：**容器为每个调度的开始时间添加 5-50 分钟的随机变化。这可以在 compose 文件中选择性地禁用或自定义。
+    - 修改 `CRON_SCHEDULE` 设置运行时间。使用 [crontab.guru](https://crontab.guru) 获取帮助。
+    - **注意：**容器为每个调度的开始时间添加 5-50 分钟的随机变化。这可以在 compose 文件中选择性地禁用或自定义。
 3. **（可选）启动时运行：**
-   - 设置 `RUN_ON_START=true` 在容器启动时立即执行脚本。
+    - 设置 `RUN_ON_START=true` 在容器启动时立即执行脚本。
 4. **启动容器：**运行 `docker compose up -d` 构建和启动。
 5. **监控日志：**使用 `docker logs microsoft-rewards-script` 查看脚本执行并获取"无密码"登录代码。
 

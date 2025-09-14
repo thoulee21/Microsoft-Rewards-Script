@@ -1,530 +1,537 @@
-import { platform } from "os";
-import { Page } from "rebrowser-playwright";
+import { platform } from 'os'
+import { Page } from 'rebrowser-playwright'
 
-import { Workers } from "../Workers";
+import { Workers } from '../Workers'
 
-import { AxiosRequestConfig } from "axios";
-import { Counters, DashboardData } from "../../interface/DashboardData";
-import { GoogleSearch } from "../../interface/Search";
+import { AxiosRequestConfig } from 'axios'
+import { Counters, DashboardData } from '../../interface/DashboardData'
+import { GoogleSearch } from '../../interface/Search'
 
 export class Search extends Workers {
-  private bingHome = "https://bing.com";
-  private searchPageURL = "";
+    private bingHome = 'https://bing.com'
+    private searchPageURL = ''
 
-  public async doSearch(page: Page, data: DashboardData) {
-    this.bot.log(this.bot.isMobile, "SEARCH-BING", "Starting Bing searches");
+    public async doSearch(page: Page, data: DashboardData) {
+        this.bot.log(this.bot.isMobile, 'SEARCH-BING', 'Starting Bing searches')
 
-    page = await this.bot.browser.utils.getLatestTab(page);
+        page = await this.bot.browser.utils.getLatestTab(page)
 
-    let searchCounters: Counters =
-      await this.bot.browser.func.getSearchPoints();
-    let missingPoints = this.calculatePoints(searchCounters);
+        let searchCounters: Counters =
+            await this.bot.browser.func.getSearchPoints()
+        let missingPoints = this.calculatePoints(searchCounters)
 
-    if (missingPoints === 0) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING",
-        "Bing searches have already been completed",
-      );
-      return;
-    }
-
-    // Generate search queries
-    let googleSearchQueries = await this.getGoogleTrends(
-      this.bot.config.searchSettings.useGeoLocaleQueries
-        ? data.userProfile.attributes.country
-        : "US",
-    );
-    googleSearchQueries = this.bot.utils.shuffleArray(googleSearchQueries);
-
-    // Deduplicate the search terms
-    googleSearchQueries = [...new Set(googleSearchQueries)];
-
-    // Go to bing
-    await page.goto(this.searchPageURL ? this.searchPageURL : this.bingHome);
-
-    await this.bot.utils.wait(2000);
-
-    await this.bot.browser.utils.tryDismissAllMessages(page);
-
-    let maxLoop = 0; // If the loop hits 10 this when not gaining any points, we're assuming it's stuck. If it doesn't continue after 5 more searches with alternative queries, abort search
-
-    const queries: string[] = [];
-    // Mobile search doesn't seem to like related queries?
-    googleSearchQueries.forEach((x) => {
-      this.bot.isMobile
-        ? queries.push(x.topic)
-        : queries.push(x.topic, ...x.related);
-    });
-
-    // Loop over Google search queries
-    for (let i = 0; i < queries.length; i++) {
-      const query = queries[i] as string;
-
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING",
-        `${missingPoints} Points Remaining | Query: ${query}`,
-      );
-
-      searchCounters = await this.bingSearch(page, query);
-      const newMissingPoints = this.calculatePoints(searchCounters);
-
-      // If the new point amount is the same as before
-      if (newMissingPoints == missingPoints) {
-        maxLoop++; // Add to max loop
-      } else {
-        // There has been a change in points
-        maxLoop = 0; // Reset the loop
-      }
-
-      missingPoints = newMissingPoints;
-
-      if (missingPoints === 0) {
-        break;
-      }
-
-      // Only for mobile searches
-      if (maxLoop > 5 && this.bot.isMobile) {
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-BING",
-          "Search didn't gain point for 5 iterations, likely bad User-Agent",
-          "warn",
-        );
-        break;
-      }
-
-      // If we didn't gain points for 10 iterations, assume it's stuck
-      if (maxLoop > 10) {
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-BING",
-          "Search didn't gain point for 10 iterations aborting searches",
-          "warn",
-        );
-        maxLoop = 0; // Reset to 0 so we can retry with related searches below
-        break;
-      }
-    }
-
-    // Only for mobile searches
-    if (missingPoints > 0 && this.bot.isMobile) {
-      return;
-    }
-
-    // If we still got remaining search queries, generate extra ones
-    if (missingPoints > 0) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING",
-        `Search completed but we're missing ${missingPoints} points, generating extra searches`,
-      );
-
-      let i = 0;
-      while (missingPoints > 0) {
-        const query = googleSearchQueries[i++] as GoogleSearch;
-
-        // Get related search terms to the Google search queries
-        const relatedTerms = await this.getRelatedTerms(query?.topic);
-        if (relatedTerms.length > 3) {
-          // Search for the first 2 related terms
-          for (const term of relatedTerms.slice(1, 3)) {
+        if (missingPoints === 0) {
             this.bot.log(
-              this.bot.isMobile,
-              "SEARCH-BING-EXTRA",
-              `${missingPoints} Points Remaining | Query: ${term}`,
-            );
+                this.bot.isMobile,
+                'SEARCH-BING',
+                'Bing searches have already been completed'
+            )
+            return
+        }
 
-            searchCounters = await this.bingSearch(page, term);
-            const newMissingPoints = this.calculatePoints(searchCounters);
+        // Generate search queries
+        let googleSearchQueries = await this.getGoogleTrends(
+            this.bot.config.searchSettings.useGeoLocaleQueries
+                ? data.userProfile.attributes.country
+                : 'US'
+        )
+        googleSearchQueries = this.bot.utils.shuffleArray(googleSearchQueries)
+
+        // Deduplicate the search terms
+        googleSearchQueries = [...new Set(googleSearchQueries)]
+
+        // Go to bing
+        await page.goto(this.searchPageURL ? this.searchPageURL : this.bingHome)
+
+        await this.bot.utils.wait(2000)
+
+        await this.bot.browser.utils.tryDismissAllMessages(page)
+
+        let maxLoop = 0 // If the loop hits 10 this when not gaining any points, we're assuming it's stuck. If it doesn't continue after 5 more searches with alternative queries, abort search
+
+        const queries: string[] = []
+        // Mobile search doesn't seem to like related queries?
+        googleSearchQueries.forEach((x) => {
+            this.bot.isMobile
+                ? queries.push(x.topic)
+                : queries.push(x.topic, ...x.related)
+        })
+
+        // Loop over Google search queries
+        for (let i = 0; i < queries.length; i++) {
+            const query = queries[i] as string
+
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-BING',
+                `${missingPoints} Points Remaining | Query: ${query}`
+            )
+
+            searchCounters = await this.bingSearch(page, query)
+            const newMissingPoints = this.calculatePoints(searchCounters)
 
             // If the new point amount is the same as before
             if (newMissingPoints == missingPoints) {
-              maxLoop++; // Add to max loop
+                maxLoop++ // Add to max loop
             } else {
-              // There has been a change in points
-              maxLoop = 0; // Reset the loop
+                // There has been a change in points
+                maxLoop = 0 // Reset the loop
             }
 
-            missingPoints = newMissingPoints;
+            missingPoints = newMissingPoints
 
-            // If we satisfied the searches
             if (missingPoints === 0) {
-              break;
+                break
             }
 
-            // Try 5 more times, then we tried a total of 15 times, fair to say it's stuck
-            if (maxLoop > 5) {
-              this.bot.log(
+            // Only for mobile searches
+            if (maxLoop > 5 && this.bot.isMobile) {
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-BING',
+                    "Search didn't gain point for 5 iterations, likely bad User-Agent",
+                    'warn'
+                )
+                break
+            }
+
+            // If we didn't gain points for 10 iterations, assume it's stuck
+            if (maxLoop > 10) {
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-BING',
+                    "Search didn't gain point for 10 iterations aborting searches",
+                    'warn'
+                )
+                maxLoop = 0 // Reset to 0 so we can retry with related searches below
+                break
+            }
+        }
+
+        // Only for mobile searches
+        if (missingPoints > 0 && this.bot.isMobile) {
+            return
+        }
+
+        // If we still got remaining search queries, generate extra ones
+        if (missingPoints > 0) {
+            this.bot.log(
                 this.bot.isMobile,
-                "SEARCH-BING-EXTRA",
-                "Search didn't gain point for 5 iterations aborting searches",
-                "warn",
-              );
-              return;
+                'SEARCH-BING',
+                `Search completed but we're missing ${missingPoints} points, generating extra searches`
+            )
+
+            let i = 0
+            while (missingPoints > 0) {
+                const query = googleSearchQueries[i++] as GoogleSearch
+
+                // Get related search terms to the Google search queries
+                const relatedTerms = await this.getRelatedTerms(query?.topic)
+                if (relatedTerms.length > 3) {
+                    // Search for the first 2 related terms
+                    for (const term of relatedTerms.slice(1, 3)) {
+                        this.bot.log(
+                            this.bot.isMobile,
+                            'SEARCH-BING-EXTRA',
+                            `${missingPoints} Points Remaining | Query: ${term}`
+                        )
+
+                        searchCounters = await this.bingSearch(page, term)
+                        const newMissingPoints =
+                            this.calculatePoints(searchCounters)
+
+                        // If the new point amount is the same as before
+                        if (newMissingPoints == missingPoints) {
+                            maxLoop++ // Add to max loop
+                        } else {
+                            // There has been a change in points
+                            maxLoop = 0 // Reset the loop
+                        }
+
+                        missingPoints = newMissingPoints
+
+                        // If we satisfied the searches
+                        if (missingPoints === 0) {
+                            break
+                        }
+
+                        // Try 5 more times, then we tried a total of 15 times, fair to say it's stuck
+                        if (maxLoop > 5) {
+                            this.bot.log(
+                                this.bot.isMobile,
+                                'SEARCH-BING-EXTRA',
+                                "Search didn't gain point for 5 iterations aborting searches",
+                                'warn'
+                            )
+                            return
+                        }
+                    }
+                }
             }
-          }
         }
-      }
+
+        this.bot.log(this.bot.isMobile, 'SEARCH-BING', 'Completed searches')
     }
 
-    this.bot.log(this.bot.isMobile, "SEARCH-BING", "Completed searches");
-  }
+    private async bingSearch(searchPage: Page, query: string) {
+        const platformControlKey = platform() === 'darwin' ? 'Meta' : 'Control'
 
-  private async bingSearch(searchPage: Page, query: string) {
-    const platformControlKey = platform() === "darwin" ? "Meta" : "Control";
+        // Try a max of 5 times
+        for (let i = 0; i < 5; i++) {
+            try {
+                // This page had already been set to the Bing.com page or the previous search listing, we just need to select it
+                searchPage =
+                    await this.bot.browser.utils.getLatestTab(searchPage)
 
-    // Try a max of 5 times
-    for (let i = 0; i < 5; i++) {
-      try {
-        // This page had already been set to the Bing.com page or the previous search listing, we just need to select it
-        searchPage = await this.bot.browser.utils.getLatestTab(searchPage);
+                // Go to top of the page
+                await searchPage.evaluate(() => {
+                    window.scrollTo(0, 0)
+                })
 
-        // Go to top of the page
-        await searchPage.evaluate(() => {
-          window.scrollTo(0, 0);
-        });
+                await this.bot.utils.wait(500)
 
-        await this.bot.utils.wait(500);
+                const searchBar = '#sb_form_q'
+                await searchPage.waitForSelector(searchBar, {
+                    state: 'visible',
+                    timeout: 10000,
+                })
+                await searchPage.click(searchBar) // Focus on the textarea
+                await this.bot.utils.wait(500)
+                await searchPage.keyboard.down(platformControlKey)
+                await searchPage.keyboard.press('A')
+                await searchPage.keyboard.press('Backspace')
+                await searchPage.keyboard.up(platformControlKey)
+                await searchPage.keyboard.type(query)
+                await searchPage.keyboard.press('Enter')
 
-        const searchBar = "#sb_form_q";
-        await searchPage.waitForSelector(searchBar, {
-          state: "visible",
-          timeout: 10000,
-        });
-        await searchPage.click(searchBar); // Focus on the textarea
-        await this.bot.utils.wait(500);
-        await searchPage.keyboard.down(platformControlKey);
-        await searchPage.keyboard.press("A");
-        await searchPage.keyboard.press("Backspace");
-        await searchPage.keyboard.up(platformControlKey);
-        await searchPage.keyboard.type(query);
-        await searchPage.keyboard.press("Enter");
+                await this.bot.utils.wait(3000)
 
-        await this.bot.utils.wait(3000);
+                // Bing.com in Chrome opens a new tab when searching
+                const resultPage =
+                    await this.bot.browser.utils.getLatestTab(searchPage)
+                this.searchPageURL = new URL(resultPage.url()).href // Set the results page
 
-        // Bing.com in Chrome opens a new tab when searching
-        const resultPage =
-          await this.bot.browser.utils.getLatestTab(searchPage);
-        this.searchPageURL = new URL(resultPage.url()).href; // Set the results page
+                await this.bot.browser.utils.reloadBadPage(resultPage)
 
-        await this.bot.browser.utils.reloadBadPage(resultPage);
+                if (this.bot.config.searchSettings.scrollRandomResults) {
+                    await this.bot.utils.wait(2000)
+                    await this.randomScroll(resultPage)
+                }
 
-        if (this.bot.config.searchSettings.scrollRandomResults) {
-          await this.bot.utils.wait(2000);
-          await this.randomScroll(resultPage);
+                if (this.bot.config.searchSettings.clickRandomResults) {
+                    await this.bot.utils.wait(2000)
+                    await this.clickRandomLink(resultPage)
+                }
+
+                // Delay between searches
+                await this.bot.utils.wait(
+                    Math.floor(
+                        this.bot.utils.randomNumber(
+                            this.bot.utils.stringToMs(
+                                this.bot.config.searchSettings.searchDelay.min
+                            ),
+                            this.bot.utils.stringToMs(
+                                this.bot.config.searchSettings.searchDelay.max
+                            )
+                        )
+                    )
+                )
+
+                return await this.bot.browser.func.getSearchPoints()
+            } catch (error) {
+                if (i === 5) {
+                    this.bot.log(
+                        this.bot.isMobile,
+                        'SEARCH-BING',
+                        'Failed after 5 retries... An error occurred:' + error,
+                        'error'
+                    )
+                    break
+                }
+
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-BING',
+                    'Search failed, An error occurred:' + error,
+                    'error'
+                )
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-BING',
+                    `Retrying search, attempt ${i}/5`,
+                    'warn'
+                )
+
+                // Reset the tabs
+                const lastTab =
+                    await this.bot.browser.utils.getLatestTab(searchPage)
+                await this.closeTabs(lastTab)
+
+                await this.bot.utils.wait(4000)
+            }
         }
 
-        if (this.bot.config.searchSettings.clickRandomResults) {
-          await this.bot.utils.wait(2000);
-          await this.clickRandomLink(resultPage);
-        }
-
-        // Delay between searches
-        await this.bot.utils.wait(
-          Math.floor(
-            this.bot.utils.randomNumber(
-              this.bot.utils.stringToMs(
-                this.bot.config.searchSettings.searchDelay.min,
-              ),
-              this.bot.utils.stringToMs(
-                this.bot.config.searchSettings.searchDelay.max,
-              ),
-            ),
-          ),
-        );
-
-        return await this.bot.browser.func.getSearchPoints();
-      } catch (error) {
-        if (i === 5) {
-          this.bot.log(
+        this.bot.log(
             this.bot.isMobile,
-            "SEARCH-BING",
-            "Failed after 5 retries... An error occurred:" + error,
-            "error",
-          );
-          break;
+            'SEARCH-BING',
+            'Search failed after 5 retries, ending',
+            'error'
+        )
+        return await this.bot.browser.func.getSearchPoints()
+    }
+
+    private async getGoogleTrends(
+        geoLocale: string = 'US'
+    ): Promise<GoogleSearch[]> {
+        const queryTerms: GoogleSearch[] = []
+        this.bot.log(
+            this.bot.isMobile,
+            'SEARCH-BING-TRENDS',
+            `Generating search queries from Bing trends | GeoLocale: ${geoLocale}`
+        )
+
+        try {
+            const request: AxiosRequestConfig = {
+                url: 'https://cn.bing.com/hp/api/v1/carousel?&format=json',
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
+
+            const response = await this.bot.axios.request(
+                request,
+                this.bot.config.proxy.proxyGoogleTrends
+            )
+            const responseData = response.data
+
+            // 解析新的 Bing API 响应格式
+            if (
+                !responseData ||
+                !responseData.data ||
+                !Array.isArray(responseData.data)
+            ) {
+                throw new Error('Invalid response format from Bing API')
+            }
+
+            // 查找 TrendingNow 类型的数据
+            const trendingData = responseData.data.find(
+                (item: any) =>
+                    item.typeName === 'TrendingNow' &&
+                    item.items &&
+                    Array.isArray(item.items)
+            )
+
+            if (!trendingData || !trendingData.items) {
+                throw new Error('No trending data found in response')
+            }
+
+            const trendingItems = trendingData.items
+
+            if (trendingItems.length < 10) {
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-BING-TRENDS',
+                    'Insufficient search queries from Bing trends',
+                    'warn'
+                )
+            }
+
+            // 处理热门搜索词
+            for (const item of trendingItems) {
+                if (item.title && typeof item.title === 'string') {
+                    // 获取相关搜索词
+                    const relatedTerms = await this.getRelatedTerms(item.title)
+
+                    queryTerms.push({
+                        topic: item.title,
+                        related: relatedTerms.slice(0, 5), // 限制相关词数量
+                    })
+                }
+            }
+
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-BING-TRENDS',
+                `Generated ${queryTerms.length} search queries from Bing trends`
+            )
+        } catch (error) {
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-BING-TRENDS',
+                'An error occurred:' + error,
+                'error'
+            )
         }
 
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-BING",
-          "Search failed, An error occurred:" + error,
-          "error",
-        );
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-BING",
-          `Retrying search, attempt ${i}/5`,
-          "warn",
-        );
-
-        // Reset the tabs
-        const lastTab = await this.bot.browser.utils.getLatestTab(searchPage);
-        await this.closeTabs(lastTab);
-
-        await this.bot.utils.wait(4000);
-      }
+        return queryTerms
     }
 
-    this.bot.log(
-      this.bot.isMobile,
-      "SEARCH-BING",
-      "Search failed after 5 retries, ending",
-      "error",
-    );
-    return await this.bot.browser.func.getSearchPoints();
-  }
+    private async getRelatedTerms(term: string): Promise<string[]> {
+        try {
+            const request = {
+                url: `https://api.bing.com/osjson.aspx?query=${term}`,
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            }
 
-  private async getGoogleTrends(
-    geoLocale: string = "US",
-  ): Promise<GoogleSearch[]> {
-    const queryTerms: GoogleSearch[] = [];
-    this.bot.log(
-      this.bot.isMobile,
-      "SEARCH-BING-TRENDS",
-      `Generating search queries from Bing trends | GeoLocale: ${geoLocale}`,
-    );
+            const response = await this.bot.axios.request(
+                request,
+                this.bot.config.proxy.proxyBingTerms
+            )
 
-    try {
-      const request: AxiosRequestConfig = {
-        url: "https://cn.bing.com/hp/api/v1/carousel?&format=json",
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-
-      const response = await this.bot.axios.request(
-        request,
-        this.bot.config.proxy.proxyGoogleTrends,
-      );
-      const responseData = response.data;
-
-      // 解析新的 Bing API 响应格式
-      if (
-        !responseData ||
-        !responseData.data ||
-        !Array.isArray(responseData.data)
-      ) {
-        throw new Error("Invalid response format from Bing API");
-      }
-
-      // 查找 TrendingNow 类型的数据
-      const trendingData = responseData.data.find(
-        (item: any) =>
-          item.typeName === "TrendingNow" &&
-          item.items &&
-          Array.isArray(item.items),
-      );
-
-      if (!trendingData || !trendingData.items) {
-        throw new Error("No trending data found in response");
-      }
-
-      const trendingItems = trendingData.items;
-
-      if (trendingItems.length < 10) {
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-BING-TRENDS",
-          "Insufficient search queries from Bing trends",
-          "warn",
-        );
-      }
-
-      // 处理热门搜索词
-      for (const item of trendingItems) {
-        if (item.title && typeof item.title === "string") {
-          // 获取相关搜索词
-          const relatedTerms = await this.getRelatedTerms(item.title);
-
-          queryTerms.push({
-            topic: item.title,
-            related: relatedTerms.slice(0, 5), // 限制相关词数量
-          });
+            return response.data[1] as string[]
+        } catch (error) {
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-BING-RELATED',
+                'An error occurred:' + error,
+                'error'
+            )
         }
-      }
 
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING-TRENDS",
-        `Generated ${queryTerms.length} search queries from Bing trends`,
-      );
-    } catch (error) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING-TRENDS",
-        "An error occurred:" + error,
-        "error",
-      );
+        return []
     }
 
-    return queryTerms;
-  }
+    private async randomScroll(page: Page) {
+        try {
+            const viewportHeight = await page.evaluate(() => window.innerHeight)
+            const totalHeight = await page.evaluate(
+                () => document.body.scrollHeight
+            )
+            const randomScrollPosition = Math.floor(
+                Math.random() * (totalHeight - viewportHeight)
+            )
 
-  private async getRelatedTerms(term: string): Promise<string[]> {
-    try {
-      const request = {
-        url: `https://api.bing.com/osjson.aspx?query=${term}`,
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-
-      const response = await this.bot.axios.request(
-        request,
-        this.bot.config.proxy.proxyBingTerms,
-      );
-
-      return response.data[1] as string[];
-    } catch (error) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-BING-RELATED",
-        "An error occurred:" + error,
-        "error",
-      );
+            await page.evaluate((scrollPos) => {
+                window.scrollTo(0, scrollPos)
+            }, randomScrollPosition)
+        } catch (error) {
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-RANDOM-SCROLL',
+                'An error occurred:' + error,
+                'error'
+            )
+        }
     }
 
-    return [];
-  }
+    private async clickRandomLink(page: Page) {
+        try {
+            await page
+                .click('#b_results .b_algo h2', { timeout: 2000 })
+                .catch(() => {}) // Since we don't really care if it did it or not
 
-  private async randomScroll(page: Page) {
-    try {
-      const viewportHeight = await page.evaluate(() => window.innerHeight);
-      const totalHeight = await page.evaluate(() => document.body.scrollHeight);
-      const randomScrollPosition = Math.floor(
-        Math.random() * (totalHeight - viewportHeight),
-      );
+            // Only used if the browser is not the edge browser (continue on Edge popup)
+            await this.closeContinuePopup(page)
 
-      await page.evaluate((scrollPos) => {
-        window.scrollTo(0, scrollPos);
-      }, randomScrollPosition);
-    } catch (error) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-RANDOM-SCROLL",
-        "An error occurred:" + error,
-        "error",
-      );
+            // Stay for 10 seconds for page to load and "visit"
+            await this.bot.utils.wait(10000)
+
+            // Will get current tab if no new one is created, this will always be the visited site or the result page if it failed to click
+            let lastTab = await this.bot.browser.utils.getLatestTab(page)
+
+            let lastTabURL = new URL(lastTab.url()) // Get new tab info, this is the website we're visiting
+
+            // Check if the URL is different from the original one, don't loop more than 5 times.
+            let i = 0
+            while (lastTabURL.href !== this.searchPageURL && i < 5) {
+                await this.closeTabs(lastTab)
+
+                // End of loop, refresh lastPage
+                lastTab = await this.bot.browser.utils.getLatestTab(page) // Finally update the lastTab var again
+                lastTabURL = new URL(lastTab.url()) // Get new tab info
+                i++
+            }
+        } catch (error) {
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-RANDOM-CLICK',
+                'An error occurred:' + error,
+                'error'
+            )
+        }
     }
-  }
 
-  private async clickRandomLink(page: Page) {
-    try {
-      await page
-        .click("#b_results .b_algo h2", { timeout: 2000 })
-        .catch(() => {}); // Since we don't really care if it did it or not
+    private async closeTabs(lastTab: Page) {
+        const browser = lastTab.context()
+        const tabs = browser.pages()
 
-      // Only used if the browser is not the edge browser (continue on Edge popup)
-      await this.closeContinuePopup(page);
+        try {
+            if (tabs.length > 2) {
+                // If more than 2 tabs are open, close the last tab
 
-      // Stay for 10 seconds for page to load and "visit"
-      await this.bot.utils.wait(10000);
+                await lastTab.close()
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-CLOSE-TABS',
+                    `More than 2 were open, closed the last tab: "${
+                        new URL(lastTab.url()).host
+                    }"`
+                )
+            } else if (tabs.length === 1) {
+                // If only 1 tab is open, open a new one to search in
 
-      // Will get current tab if no new one is created, this will always be the visited site or the result page if it failed to click
-      let lastTab = await this.bot.browser.utils.getLatestTab(page);
+                const newPage = await browser.newPage()
+                await this.bot.utils.wait(1000)
 
-      let lastTabURL = new URL(lastTab.url()); // Get new tab info, this is the website we're visiting
+                await newPage.goto(this.bingHome)
+                await this.bot.utils.wait(3000)
+                this.searchPageURL = newPage.url()
 
-      // Check if the URL is different from the original one, don't loop more than 5 times.
-      let i = 0;
-      while (lastTabURL.href !== this.searchPageURL && i < 5) {
-        await this.closeTabs(lastTab);
+                this.bot.log(
+                    this.bot.isMobile,
+                    'SEARCH-CLOSE-TABS',
+                    'There was only 1 tab open, crated a new one'
+                )
+            } else {
+                // Else reset the last tab back to the search listing or Bing.com
 
-        // End of loop, refresh lastPage
-        lastTab = await this.bot.browser.utils.getLatestTab(page); // Finally update the lastTab var again
-        lastTabURL = new URL(lastTab.url()); // Get new tab info
-        i++;
-      }
-    } catch (error) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-RANDOM-CLICK",
-        "An error occurred:" + error,
-        "error",
-      );
+                lastTab = await this.bot.browser.utils.getLatestTab(lastTab)
+                await lastTab.goto(
+                    this.searchPageURL ? this.searchPageURL : this.bingHome
+                )
+            }
+        } catch (error) {
+            this.bot.log(
+                this.bot.isMobile,
+                'SEARCH-CLOSE-TABS',
+                'An error occurred:' + error,
+                'error'
+            )
+        }
     }
-  }
 
-  private async closeTabs(lastTab: Page) {
-    const browser = lastTab.context();
-    const tabs = browser.pages();
+    private calculatePoints(counters: Counters) {
+        const mobileData = counters.mobileSearch?.[0] // Mobile searches
+        const genericData = counters.pcSearch?.[0] // Normal searches
+        const edgeData = counters.pcSearch?.[1] // Edge searches
 
-    try {
-      if (tabs.length > 2) {
-        // If more than 2 tabs are open, close the last tab
+        const missingPoints =
+            this.bot.isMobile && mobileData
+                ? mobileData.pointProgressMax - mobileData.pointProgress
+                : (edgeData
+                      ? edgeData.pointProgressMax - edgeData.pointProgress
+                      : 0) +
+                  (genericData
+                      ? genericData.pointProgressMax - genericData.pointProgress
+                      : 0)
 
-        await lastTab.close();
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-CLOSE-TABS",
-          `More than 2 were open, closed the last tab: "${
-            new URL(lastTab.url()).host
-          }"`,
-        );
-      } else if (tabs.length === 1) {
-        // If only 1 tab is open, open a new one to search in
-
-        const newPage = await browser.newPage();
-        await this.bot.utils.wait(1000);
-
-        await newPage.goto(this.bingHome);
-        await this.bot.utils.wait(3000);
-        this.searchPageURL = newPage.url();
-
-        this.bot.log(
-          this.bot.isMobile,
-          "SEARCH-CLOSE-TABS",
-          "There was only 1 tab open, crated a new one",
-        );
-      } else {
-        // Else reset the last tab back to the search listing or Bing.com
-
-        lastTab = await this.bot.browser.utils.getLatestTab(lastTab);
-        await lastTab.goto(
-          this.searchPageURL ? this.searchPageURL : this.bingHome,
-        );
-      }
-    } catch (error) {
-      this.bot.log(
-        this.bot.isMobile,
-        "SEARCH-CLOSE-TABS",
-        "An error occurred:" + error,
-        "error",
-      );
+        return missingPoints
     }
-  }
 
-  private calculatePoints(counters: Counters) {
-    const mobileData = counters.mobileSearch?.[0]; // Mobile searches
-    const genericData = counters.pcSearch?.[0]; // Normal searches
-    const edgeData = counters.pcSearch?.[1]; // Edge searches
+    private async closeContinuePopup(page: Page) {
+        try {
+            await page.waitForSelector('#sacs_close', { timeout: 1000 })
+            const continueButton = await page.$('#sacs_close')
 
-    const missingPoints =
-      this.bot.isMobile && mobileData
-        ? mobileData.pointProgressMax - mobileData.pointProgress
-        : (edgeData ? edgeData.pointProgressMax - edgeData.pointProgress : 0) +
-          (genericData
-            ? genericData.pointProgressMax - genericData.pointProgress
-            : 0);
-
-    return missingPoints;
-  }
-
-  private async closeContinuePopup(page: Page) {
-    try {
-      await page.waitForSelector("#sacs_close", { timeout: 1000 });
-      const continueButton = await page.$("#sacs_close");
-
-      if (continueButton) {
-        await continueButton.click();
-      }
-    } catch (error) {
-      // Continue if element is not found or other error occurs
+            if (continueButton) {
+                await continueButton.click()
+            }
+        } catch (error) {
+            // Continue if element is not found or other error occurs
+        }
     }
-  }
 }
