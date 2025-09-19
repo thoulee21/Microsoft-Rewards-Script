@@ -19,7 +19,7 @@ export class DailyCheckIn extends Workers {
                 this.bot.config.searchSettings.useGeoLocaleQueries &&
                 geoLocale.length === 2
                     ? geoLocale.toLowerCase()
-                    : 'us'
+                    : 'cn'
 
             const jsonData = {
                 amount: 1,
@@ -38,7 +38,7 @@ export class DailyCheckIn extends Workers {
                     Authorization: `Bearer ${accessToken}`,
                     'Content-Type': 'application/json',
                     'X-Rewards-Country': geoLocale,
-                    'X-Rewards-Language': 'en',
+                    'X-Rewards-Language': 'zh',
                 },
                 data: JSON.stringify(jsonData),
             }
