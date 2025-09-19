@@ -508,7 +508,10 @@ export class Login {
                         this.bot.log(
                             this.bot.isMobile,
                             'LOGIN-APP',
-                            `Authorization code received: ${code.substring(0, 10)}`
+                            `Authorization code received: ${code.substring(
+                                0,
+                                10
+                            )}`
                         )
                         break
                     } else {
@@ -722,7 +725,7 @@ export class Login {
                 handledPasskey = true
             } else if (!handledPasskey) {
                 // Last-resort fallbacks by text and close icon
-                const skipByText = await page
+                const skipByText = page
                     .locator(
                         'xpath=//button[contains(normalize-space(.), "Skip for now")]'
                     )
