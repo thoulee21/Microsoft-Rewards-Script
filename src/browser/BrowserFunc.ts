@@ -284,7 +284,7 @@ export default class BrowserFunc {
                 this.bot.config.searchSettings.useGeoLocaleQueries &&
                 geoLocale.length === 2
                     ? geoLocale.toLowerCase()
-                    : 'cn'
+                    : 'us'
 
             const userDataRequest: AxiosRequestConfig = {
                 url: 'https://prod.rewardsplatform.microsoft.com/dapi/me?channel=SAAndroid&options=613',
@@ -292,7 +292,7 @@ export default class BrowserFunc {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                     'X-Rewards-Country': geoLocale,
-                    'X-Rewards-Language': 'zh',
+                    'X-Rewards-Language': 'en',
                 },
             }
 
