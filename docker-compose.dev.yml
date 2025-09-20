@@ -14,13 +14,13 @@ services:
         environment:
             TZ: 'Asia/Shanghai' # Set your timezone for proper scheduling
             NODE_ENV: 'production'
-            CRON_SCHEDULE: '0 7,16,20 * * *' # Customize your schedule, use crontab.guru for formatting
+            CRON_SCHEDULE: '0 7,13,20 * * *' # Customize your schedule, use crontab.guru for formatting
             RUN_ON_START: 'true' # Runs the script immediately on container startup
 
             # Add scheduled start-time randomization (uncomment to customize or disable, default: enabled)
-            # MIN_SLEEP_MINUTES: "5"
-            # MAX_SLEEP_MINUTES: "50"
-            SKIP_RANDOM_SLEEP: 'true'
+            MIN_SLEEP_MINUTES: "5"
+            MAX_SLEEP_MINUTES: "10"
+            SKIP_RANDOM_SLEEP: 'false'
 
             # Optionally set how long to wait before killing a stuck script run (prevents blocking future runs, default: 8 hours)
             STUCK_PROCESS_TIMEOUT_HOURS: '2'
