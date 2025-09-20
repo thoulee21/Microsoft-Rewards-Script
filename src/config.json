@@ -3,7 +3,7 @@
     "sessionPath": "sessions",
     "headless": true,
     "parallel": false,
-    "runOnZeroPoints": false,
+    "runOnZeroPoints": true,
     "clusters": 1,
     "saveFingerprint": {
         "mobile": false,
