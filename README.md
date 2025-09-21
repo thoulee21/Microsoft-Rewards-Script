@@ -87,7 +87,7 @@
 | proxy.proxyGoogleTrends                | 启用或禁用通过设置的代理代理请求                             | `true`（将被代理）                     |
 | proxy.proxyBingTerms                   | 启用或禁用通过设置的代理代理请求                             | `true`（将被代理）                     |
 | webhook.enabled                        | 启用或禁用您设置的 webhook                                   | `false`                                |
-| webhook.url                            | 您的 Discord webhook URL                                     | `null`                                 |
+| webhook.url                            | 您的 Slack webhook URL                                     | `null`                                 |
 
 ## 功能
 

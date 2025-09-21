@@ -14,7 +14,7 @@ export async function Webhook(configData: Config, content: string) {
             'Content-Type': 'application/json',
         },
         data: {
-            content: content,
+            text: content,
         },
     }
 
