@@ -1,2 +1,9 @@
+# Export environment required by run_daily.sh so cron has access to them
+# These are templated by entrypoint.sh via envsubst
+MIN_SLEEP_MINUTES=${MIN_SLEEP_MINUTES}
+MAX_SLEEP_MINUTES=${MAX_SLEEP_MINUTES}
+SKIP_RANDOM_SLEEP=${SKIP_RANDOM_SLEEP}
+STUCK_PROCESS_TIMEOUT_HOURS=${STUCK_PROCESS_TIMEOUT_HOURS}
+
 # Run automation according to CRON_SCHEDULE; redirect both stdout & stderr to Docker logs
 ${CRON_SCHEDULE} TZ=${TZ} /bin/bash /usr/src/microsoft-rewards-script/src/run_daily.sh >> /proc/1/fd/1 2>&1

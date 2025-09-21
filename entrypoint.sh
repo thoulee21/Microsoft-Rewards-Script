@@ -10,6 +10,12 @@ ln -snf "/usr/share/zoneinfo/$TZ" /etc/localtime
 echo "$TZ" > /etc/timezone
 dpkg-reconfigure -f noninteractive tzdata
 
+# Default values for runtime envs used by run_daily.sh (can be overridden by docker environment)
+: "${MIN_SLEEP_MINUTES:=5}"
+: "${MAX_SLEEP_MINUTES:=50}"
+: "${SKIP_RANDOM_SLEEP:=false}"
+: "${STUCK_PROCESS_TIMEOUT_HOURS:=8}"
+
 # 2. Validate CRON_SCHEDULE
 if [ -z "${CRON_SCHEDULE:-}" ]; then
   echo "ERROR: CRON_SCHEDULE environment variable is not set." >&2
@@ -38,8 +44,8 @@ if [ ! -f /etc/cron.d/microsoft-rewards-cron.template ]; then
   exit 1
 fi
 
-# Export TZ for envsubst to use
-export TZ
+# Export TZ and runtime variables for envsubst / cron to use
+export TZ MIN_SLEEP_MINUTES MAX_SLEEP_MINUTES SKIP_RANDOM_SLEEP STUCK_PROCESS_TIMEOUT_HOURS
 envsubst < /etc/cron.d/microsoft-rewards-cron.template > /etc/cron.d/microsoft-rewards-cron
 chmod 0644 /etc/cron.d/microsoft-rewards-cron
 crontab /etc/cron.d/microsoft-rewards-cron
