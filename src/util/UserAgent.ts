@@ -46,7 +46,7 @@ export async function getUserAgent(isMobile: boolean) {
 export async function getChromeVersion(isMobile: boolean): Promise<string> {
     try {
         const request = {
-            url: 'https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json',
+            url: 'https://raw.githubusercontent.com/GoogleChromeLabs/chrome-for-testing/refs/heads/main/data/last-known-good-versions.json',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -60,10 +60,11 @@ export async function getChromeVersion(isMobile: boolean): Promise<string> {
         log(
             isMobile,
             'USERAGENT-CHROME-VERSION',
-            'An error occurred:' + error + ', using default version',
+            'An error occurred while getting Chrome version, using fallback version: ' +
+                error,
             'warn'
         )
-        return '140.0.7339.82'
+        return '140.0.7339.207'
     }
 }
 
@@ -151,10 +152,12 @@ export async function updateFingerprintUserAgent(
             )
 
         fingerprint.headers['user-agent'] = userAgentData.userAgent
-        fingerprint.headers['sec-ch-ua'] =
-            `"Microsoft Edge";v="${componentData.edge_major_version}", "Not=A?Brand";v="${componentData.not_a_brand_major_version}", "Chromium";v="${componentData.chrome_major_version}"`
-        fingerprint.headers['sec-ch-ua-full-version-list'] =
-            `"Microsoft Edge";v="${componentData.edge_version}", "Not=A?Brand";v="${componentData.not_a_brand_version}", "Chromium";v="${componentData.chrome_version}"`
+        fingerprint.headers[
+            'sec-ch-ua'
+        ] = `"Microsoft Edge";v="${componentData.edge_major_version}", "Not=A?Brand";v="${componentData.not_a_brand_major_version}", "Chromium";v="${componentData.chrome_major_version}"`
+        fingerprint.headers[
+            'sec-ch-ua-full-version-list'
+        ] = `"Microsoft Edge";v="${componentData.edge_version}", "Not=A?Brand";v="${componentData.not_a_brand_version}", "Chromium";v="${componentData.chrome_version}"`
 
         /*
         Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36 EdgA/129.0.0.0
