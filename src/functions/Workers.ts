@@ -29,7 +29,7 @@ export class Workers {
             this.bot.log(
                 this.bot.isMobile,
                 'DAILY-SET',
-                'All Daily Set" items have already been completed'
+                'All "Daily Set" items have already been completed'
             )
             return
         }

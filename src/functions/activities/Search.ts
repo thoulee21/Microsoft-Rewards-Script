@@ -243,7 +243,7 @@ export class Search extends Workers {
                     this.bot.log(
                         this.bot.isMobile,
                         'SEARCH-BING',
-                        'Failed after 5 retries... An error occurred:' + error,
+                        'Failed after 5 retries. An error occurred:' + error,
                         'error'
                     )
                     break
