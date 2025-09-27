@@ -48,6 +48,9 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 # Copy package files first for better caching
 COPY --from=builder /usr/src/microsoft-rewards-script/package*.json ./
 
+# Update npm to latest version
+RUN npm install -g npm@latest
+
 # Install only production dependencies, with fallback
 RUN if [ -f package-lock.json ]; then \
       npm ci --omit=dev --ignore-scripts; \
