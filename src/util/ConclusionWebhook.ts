@@ -32,63 +32,66 @@ function truncate(input: string, max: number): string {
     return input.length > max ? input.slice(0, max) : input
 }
 
-// Convert legacy Discord-like embeds to Slack Block Kit blocks
-function embedsToSlackBlocks(embeds: LegacyEmbed[]) {
+function colorToHex(n?: number): string | undefined {
+    if (typeof n !== 'number' || !isFinite(n)) return undefined
+    const hex = n.toString(16).padStart(6, '0').slice(-6)
+    return `#${hex}`
+}
+
+// Convert a single legacy embed to Slack Block Kit blocks
+function embedToSlackBlocks(e: LegacyEmbed) {
     const blocks: any[] = []
 
-    for (const e of embeds) {
-        if (e.title) {
-            blocks.push({
-                type: 'header',
-                text: {
-                    type: 'plain_text',
-                    text: truncate(e.title, 150),
-                    emoji: true,
-                },
-            })
-        }
+    if (e.title) {
+        blocks.push({
+            type: 'header',
+            text: {
+                type: 'plain_text',
+                text: truncate(e.title, 150),
+                emoji: true,
+            },
+        })
+    }
 
-        if (e.description) {
-            blocks.push({
-                type: 'section',
-                text: { type: 'mrkdwn', text: truncate(e.description, 3000) },
-            })
-        }
+    if (e.description) {
+        blocks.push({
+            type: 'section',
+            text: { type: 'mrkdwn', text: truncate(e.description, 3000) },
+        })
+    }
 
-        if (e.fields && e.fields.length) {
-            // Slack limit: keep it reasonable; one section per field for clarity
-            for (const f of e.fields.slice(0, 25)) {
-                const name = truncate(f.name || '', 256)
-                const value = truncate(f.value || '', 3000)
-                const text = name ? `*${name}*\n${value}` : value
-                blocks.push({
-                    type: 'section',
-                    text: { type: 'mrkdwn', text },
-                })
-            }
-        }
-
-        // Footer + timestamp as a context block
-        const footerParts: string[] = []
-        if (e.footer?.text) footerParts.push(truncate(e.footer.text, 200))
-        if (e.timestamp) {
-            try {
-                const dt = new Date(e.timestamp)
-                if (!isNaN(dt.getTime())) footerParts.push(dt.toISOString())
-            } catch {
-                // ignore bad timestamp
-            }
-        }
-        if (footerParts.length) {
-            blocks.push({
-                type: 'context',
-                elements: [{ type: 'mrkdwn', text: footerParts.join(' • ') }],
-            })
+    if (e.fields && e.fields.length) {
+        for (const f of e.fields.slice(0, 25)) {
+            const name = truncate(f.name || '', 256)
+            const value = truncate(f.value || '', 3000)
+            const text = name ? `*${name}*\n${value}` : value
+            blocks.push({ type: 'section', text: { type: 'mrkdwn', text } })
         }
     }
 
-    // Slack: max 50 blocks per message
-    return blocks.slice(0, 50)
+    const footerParts: string[] = []
+    if (e.footer?.text) footerParts.push(truncate(e.footer.text, 200))
+    if (e.timestamp) {
+        try {
+            const dt = new Date(e.timestamp)
+            if (!isNaN(dt.getTime()))
+                footerParts.push(
+                    dt.toLocaleString(undefined, {
+                        timeZone: 'Asia/Shanghai',
+                    })
+                )
+        } catch {
+            // ignore bad timestamp
+        }
+    }
+    if (footerParts.length) {
+        blocks.push({
+            type: 'context',
+            elements: [{ type: 'mrkdwn', text: footerParts.join(' • ') }],
+        })
+    }
+
+    return blocks
 }
 
 /**
@@ -107,11 +110,18 @@ export async function ConclusionWebhook(
     // Build Slack payload
     let body: any
     if (embed?.embeds && embed.embeds.length) {
-        const blocks = embedsToSlackBlocks(embed.embeds)
-        body = {
-            text: content || 'Summary', // fallback for notifications
-            blocks,
-        }
+        // Map each embed to a Slack attachment so we can use the left color bar
+        const attachments = embed.embeds.slice(0, 20).map((e) => {
+            const att: any = {
+                ...(colorToHex(e.color) ? { color: colorToHex(e.color) } : {}),
+                blocks: embedToSlackBlocks(e),
+            }
+            const fb = [e.title, e.description].filter(Boolean).join(' - ')
+            if (fb) att.fallback = truncate(fb, 200)
+            return att
+        })
+        // Only send attachments (no top-level text) per request
+        body = { attachments }
     } else {
         body = { text: content || 'Summary' }
     }
