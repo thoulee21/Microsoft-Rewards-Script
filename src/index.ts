@@ -185,7 +185,6 @@ export class MicrosoftRewardsBot {
 
             const accountStart = Date.now()
             let desktopInitial = 0
-            let mobileInitial = 0
             let desktopCollected = 0
             let mobileCollected = 0
             const errors: string[] = []
@@ -242,7 +241,6 @@ export class MicrosoftRewardsBot {
                     desktopCollected = desktopResult.collectedPoints
                 }
                 if (mobileResult) {
-                    mobileInitial = mobileResult.initialPoints
                     mobileCollected = mobileResult.collectedPoints
                 }
             } else {
@@ -278,7 +276,6 @@ export class MicrosoftRewardsBot {
                     return null
                 })
                 if (mobileResult) {
-                    mobileInitial = mobileResult.initialPoints
                     mobileCollected = mobileResult.collectedPoints
                 }
             }
@@ -286,7 +283,7 @@ export class MicrosoftRewardsBot {
             const accountEnd = Date.now()
             const durationMs = accountEnd - accountStart
             const totalCollected = desktopCollected + mobileCollected
-            const initialTotal = (desktopInitial || 0) + (mobileInitial || 0)
+            const initialTotal = desktopInitial || 0 // 先运行桌面端，初始积分以桌面端为准
             this.accountSummaries.push({
                 email: account.email,
                 durationMs,
@@ -639,7 +636,7 @@ export class MicrosoftRewardsBot {
         const avgDuration = totalDuration / totalAccounts
         const embed = {
             title: '🎯 Microsoft Rewards 脚本运行总结',
-            description: `已处理 **${totalAccounts}** 个账户${
+            description: `已处理 ${totalAccounts} 个账户${
                 accountsWithErrors
                     ? ` • ${accountsWithErrors} 个账户存在问题`
                     : ''
