@@ -405,7 +405,7 @@ export class Search extends Workers {
                 Math.random() * (totalHeight - viewportHeight)
             )
 
-            await page.evaluate((scrollPos) => {
+            await page.evaluate((scrollPos: number) => {
                 window.scrollTo(0, scrollPos)
             }, randomScrollPosition)
         } catch (error) {

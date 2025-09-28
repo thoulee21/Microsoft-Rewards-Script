@@ -1,10 +1,12 @@
-import { BrowserContext, Page } from 'rebrowser-playwright'
-import { CheerioAPI, load } from 'cheerio'
 import { AxiosRequestConfig } from 'axios'
+import { CheerioAPI, load } from 'cheerio'
+import { BrowserContext, Page } from 'rebrowser-playwright'
 
 import { MicrosoftRewardsBot } from '../index'
 import { saveSessionData } from '../util/Load'
 
+import { AppUserData } from '../interface/AppUserData'
+import { EarnablePoints } from '../interface/Points'
 import {
     Counters,
     DashboardData,
@@ -12,8 +14,6 @@ import {
     PromotionalItem,
 } from './../interface/DashboardData'
 import { QuizData } from './../interface/QuizData'
-import { AppUserData } from '../interface/AppUserData'
-import { EarnablePoints } from '../interface/Points'
 
 export default class BrowserFunc {
     private bot: MicrosoftRewardsBot
@@ -122,9 +122,46 @@ export default class BrowserFunc {
                 )
                 await this.goHome(this.bot.homePage)
             }
-
-            // Reload the page to get new data
-            await this.bot.homePage.reload({ waitUntil: 'domcontentloaded' })
+            let lastError: any = null
+            for (let attempt = 1; attempt <= 2; attempt++) {
+                try {
+                    // Reload the page to get new data
+                    await this.bot.homePage.reload({
+                        waitUntil: 'domcontentloaded',
+                    })
+                    lastError = null
+                    break
+                } catch (re) {
+                    lastError = re
+                    const msg = re instanceof Error ? re.message : String(re)
+                    this.bot.log(
+                        this.bot.isMobile,
+                        'GET-DASHBOARD-DATA',
+                        `Reload failed attempt ${attempt}: ${msg}`,
+                        'warn'
+                    )
+                    // If page/context closed => bail early after first retry
+                    if (msg.includes('has been closed')) {
+                        if (attempt === 1) {
+                            this.bot.log(
+                                this.bot.isMobile,
+                                'GET-DASHBOARD-DATA',
+                                'Page appears closed; trying one navigation fallback',
+                                'warn'
+                            )
+                            try {
+                                await this.goHome(this.bot.homePage)
+                            } catch {
+                                /* ignore */
+                            }
+                        } else {
+                            break
+                        }
+                    }
+                    if (attempt === 2 && lastError) throw lastError
+                    await this.bot.utils.wait(1000)
+                }
+            }
 
             const scriptContent = await this.bot.homePage.evaluate(() => {
                 const scripts = Array.from(document.querySelectorAll('script'))

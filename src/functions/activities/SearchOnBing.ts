@@ -1,6 +1,6 @@
-import { Page } from 'rebrowser-playwright'
 import * as fs from 'fs'
 import path from 'path'
+import type { Page } from 'playwright'
 
 import { Workers } from '../Workers'
 
@@ -29,7 +29,7 @@ export class SearchOnBing extends Workers {
                 state: 'visible',
                 timeout: 10000,
             })
-            await page.click(searchBar)
+            await this.safeClick(page, searchBar)
             await this.bot.utils.wait(500)
             await page.keyboard.type(query)
             await page.keyboard.press('Enter')
@@ -50,6 +50,25 @@ export class SearchOnBing extends Workers {
                 'An error occurred:' + error,
                 'error'
             )
+        }
+    }
+
+    private async safeClick(page: Page, selector: string) {
+        try {
+            await page.click(selector, { timeout: 5000 })
+        } catch (e: any) {
+            const msg = e?.message || ''
+            if (
+                /Timeout.*click/i.test(msg) ||
+                /intercepts pointer events/i.test(msg)
+            ) {
+                // Try to dismiss overlays then retry once
+                await this.bot.browser.utils.tryDismissAllMessages(page)
+                await this.bot.utils.wait(500)
+                await page.click(selector, { timeout: 5000 })
+            } else {
+                throw e
+            }
         }
     }
 
