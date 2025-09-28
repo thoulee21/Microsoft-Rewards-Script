@@ -1,5 +1,5 @@
-import { Page } from 'rebrowser-playwright'
 import { load } from 'cheerio'
+import { Page } from 'rebrowser-playwright'
 
 import { MicrosoftRewardsBot } from '../index'
 
@@ -57,6 +57,36 @@ export default class BrowserUtil {
             } catch (error) {
                 // Silent fail
             }
+        }
+
+        // Handle blocking Bing privacy overlay intercepting clicks (#bnp_overlay_wrapper)
+        try {
+            const overlay = page.locator('#bnp_overlay_wrapper').first()
+            if (await overlay.isVisible({ timeout: 500 }).catch(() => false)) {
+                // Try common dismiss buttons inside overlay
+                const rejectBtn = page
+                    .locator('#bnp_btn_reject, button[aria-label*="Reject" i]')
+                    .first()
+                const acceptBtn = page.locator('#bnp_btn_accept').first()
+                if (await rejectBtn.isVisible().catch(() => false)) {
+                    await rejectBtn.click({ timeout: 500 }).catch(() => {})
+                    this.bot.log(
+                        this.bot.isMobile,
+                        'DISMISS-ALL-MESSAGES',
+                        'Dismissed: Bing Overlay Reject'
+                    )
+                } else if (await acceptBtn.isVisible().catch(() => false)) {
+                    await acceptBtn.click({ timeout: 500 }).catch(() => {})
+                    this.bot.log(
+                        this.bot.isMobile,
+                        'DISMISS-ALL-MESSAGES',
+                        'Dismissed: Bing Overlay Accept (fallback)'
+                    )
+                }
+                await page.waitForTimeout(300)
+            }
+        } catch {
+            /* ignore */
         }
     }
 

@@ -1,127 +1,210 @@
 # Microsoft-Rewards-Script
 
-自动化的微软奖励脚本，这次使用 TypeScript、Cheerio 和 Playwright。
+自动化的 Microsoft Rewards 脚本，使用 TypeScript、Cheerio 和 Playwright 构建。
 
 正在开发中，主要供个人使用！
 
-## 如何设置
+---
 
-1. 下载或克隆源代码
-2. 将 `accounts.example.json` 改为 `accounts.json` 并添加您的账户详细信息
-3. 根据您的喜好修改 `config.json`
-4. 选择 nix 或非 nix 路径
+## 🚀 快速安装（推荐）
 
-### 如何设置（不使用 nix）###
+**最简单的入门方式——只需下载并运行！**
 
-5. 运行 `npm i` 安装包
-6. 运行 `npm run build` 构建脚本
-7. 运行 `npm run start` 启动构建的脚本
+1. **下载或克隆** 源代码
+2. **运行安装脚本：**
 
-### 如何设置（使用 nix）##
+    **Windows：** 双击 `setup/setup.bat` 或在命令行运行
 
-5. 获取 [Nix](https://nixos.org/)
-6. 运行 `./run.sh`
-7. 就是这样！
+    **Linux/macOS/WSL：** `bash setup/setup.sh`
 
-## 注意事项
+    **其他平台：** `npm run setup`
 
-- 如果您在没有先关闭浏览器窗口的情况下结束脚本（仅在 headless 为 false 时），您将留下占用资源的挂起的 chrome 实例。使用任务管理器杀死这些进程或使用包含的 `npm run kill-chrome-win` 脚本。（Windows）
-- 如果您自动化此脚本，请将其设置为每天至少运行 2 次以确保它获取了所有任务，设置 `"runOnZeroPoints": false` 以便在未找到积分时不运行。
+3. **按照提示操作：** 安装脚本将自动完成以下步骤：
+    - 重命名 `accounts.example.json` 为 `accounts.json`
+    - 提示输入你的 Microsoft 账号信息
+    - 提醒你检查 `config.json` 配置选项
+    - 安装所有依赖（`npm install`）
+    - 构建项目（`npm run build`）
+    - 可选：立即启动脚本
 
-## Docker（实验性）##
+**就是这么简单！** 安装脚本会帮你完成所有步骤。
 
-### **开始之前**
+---
 
-- 如果您之前在本地构建并运行过脚本，请从您的 `Microsoft-Rewards-Script` 目录中**删除** `/node_modules` 和 `/dist` 文件夹。
-- 如果您曾在旧版本脚本（例如 1.4）中使用过 Docker，请**删除**任何持久保存的 `config.json` 和会话文件夹。旧的 `accounts.json` 文件可以重复使用。
+## ⚙️ 高级安装选项
 
-### **设置源文件**
+### Nix 用户
 
-1. **下载源代码**
+1. 获取 [Nix](https://nixos.org/)
+2. 运行 `./run.sh`
+3. 完成！
 
-2. **更新 `accounts.json`**
+### 手动安装（故障排查）
 
-3. **编辑 `config.json`，**确保 "headless": true，其他设置根据您的偏好
+如果自动安装脚本无法在你的环境中运行：
 
-### **自定义 `compose.yaml` 文件**
+1. 手动重命名 `src/accounts.example.json` 为 `src/accounts.json`
+2. 在 `accounts.json` 中添加你的 Microsoft 账号信息
+3. 根据需要自定义 `src/config.json`
+4. 安装依赖：`npm install`
+5. 构建项目：`npm run build`
+6. 启动脚本：`npm run start`
 
-提供了一个基本的 docker `compose.yaml`。按照以下步骤配置和运行容器：
+---
 
-1. **设置您的时区：**调整 `TZ` 变量以确保正确的调度。
-2. **自定义调度：**
-    - 修改 `CRON_SCHEDULE` 设置运行时间。使用 [crontab.guru](https://crontab.guru) 获取帮助。
-    - **注意：**容器为每个调度的开始时间添加 5-50 分钟的随机变化。这可以在 compose 文件中选择性地禁用或自定义。
-3. **（可选）启动时运行：**
-    - 设置 `RUN_ON_START=true` 在容器启动时立即执行脚本。
-4. **启动容器：**运行 `docker compose up -d` 构建和启动。
-5. **监控日志：**使用 `docker logs microsoft-rewards-script` 查看脚本执行并获取"无密码"登录代码。
+## 🐳 Docker 安装（实验性）
 
-## 配置
+用于自动调度和容器化部署。
 
-| 设置                                   | 描述                                                         | 默认值                                 |
-| :------------------------------------- | :----------------------------------------------------------- | :------------------------------------- |
-| baseURL                                | MS 奖励页面                                                  | `https://rewards.bing.com`             |
-| sessionPath                            | 您希望存储会话/指纹的路径                                    | `sessions`（在 ./browser/sessions 中） |
-| headless                               | 浏览器窗口是否应该可见或在后台运行                           | `false`（浏览器可见）                  |
-| parallel                               | 是否希望移动和桌面任务并行或顺序运行                         | `true`                                 |
-| runOnZeroPoints                        | 如果可获得 0 积分时运行脚本的其余部分                        | `false`（在 0 积分时不会运行）         |
-| clusters                               | 启动时运行的实例数量，每个账户 1 个                          | `1`（一次运行 1 个账户）               |
-| saveFingerprint.mobile                 | 每次重复使用相同的指纹                                       | `false`（每次生成新指纹）              |
-| saveFingerprint.desktop                | 每次重复使用相同的指纹                                       | `false`（每次生成新指纹）              |
-| workers.doDailySet                     | 完成每日任务项目                                             | `true`                                 |
-| workers.doMorePromotions               | 完成促销项目                                                 | `true`                                 |
-| workers.doPunchCards                   | 完成打卡任务                                                 | `true`                                 |
-| workers.doDesktopSearch                | 完成每日桌面搜索                                             | `true`                                 |
-| workers.doMobileSearch                 | 完成每日移动搜索                                             | `true`                                 |
-| workers.doDailyCheckIn                 | 完成每日签到活动                                             | `true`                                 |
-| workers.doReadToEarn                   | 完成阅读赚取活动                                             | `true`                                 |
-| searchOnBingLocalQueries               | 使用 `queries.json` 或从此存储库获取完成"在 Bing 上搜索"活动 | `false`（将从此存储库获取）            |
-| globalTimeout                          | 操作超时前的时长                                             | `30s`                                  |
-| searchSettings.useGeoLocaleQueries     | 基于您的地理位置生成搜索查询                                 | `false`（使用 EN-US 生成的查询）       |
-| searchSettings.scrollRandomResults     | 在搜索结果中随机滚动                                         | `true`                                 |
-| searchSettings.clickRandomResults      | 从搜索结果访问随机网站                                       | `true`                                 |
-| searchSettings.searchDelay             | 搜索查询之间的最小和最大时间（毫秒）                         | `min: 3min` `max: 5min`                |
-| searchSettings.retryMobileSearchAmount | 继续重试移动搜索的指定次数                                   | `2`                                    |
-| logExcludeFunc                         | 从日志和 webhooks 中排除的函数                               | `SEARCH-CLOSE-TABS`                    |
-| webhookLogExcludeFunc                  | 从 webhooks 日志中排除的函数                                 | `SEARCH-CLOSE-TABS`                    |
-| proxy.proxyGoogleTrends                | 启用或禁用通过设置的代理代理请求                             | `true`（将被代理）                     |
-| proxy.proxyBingTerms                   | 启用或禁用通过设置的代理代理请求                             | `true`（将被代理）                     |
-| webhook.enabled                        | 启用或禁用您设置的 webhook                                   | `false`                                |
-| webhook.url                            | 您的 Slack webhook URL                                     | `null`                                 |
+### 开始前
 
-## 功能
+-   如果之前本地构建过，请删除 `/node_modules` 和 `/dist` 文件夹
+-   如果从 1.4 或更早版本升级，请删除旧的 Docker 卷
+-   旧的 `accounts.json` 文件可以继续使用
 
-- [x] 多账户支持
-- [x] 会话存储
-- [x] 2FA 支持
-- [x] 无密码支持
-- [x] 无头支持
-- [x] Discord Webhook 支持
-- [x] 桌面搜索
-- [x] 可配置任务
-- [x] Microsoft Edge 搜索
-- [x] 移动搜索
-- [x] 模拟滚动支持
-- [x] 模拟链接点击支持
-- [x] 地理位置搜索查询
-- [x] 完成每日任务
-- [x] 完成更多促销
-- [x] 解决测验（10 点变体）
-- [x] 解决测验（30-40 点变体）
-- [x] 完成点击奖励
-- [x] 完成投票
-- [x] 完成打卡任务
-- [x] 解决这个或那个测验（随机）
-- [x] 解决 ABC 测验
-- [x] 完成每日签到
-- [x] 完成阅读赚取
-- [x] 集群支持
-- [x] 代理支持
-- [x] Docker 支持（实验性）
-- [x] 自动调度（通过 Docker）
+### 快速 Docker 安装
 
-## 免责声明
+1. **下载源代码** 并配置 `accounts.json`
+2. **编辑 `config.json`** - 确保 `"headless": true`
+3. **自定义 `compose.yaml`：**
+    - 设置你的时区（`TZ` 变量）
+    - 配置调度（`CRON_SCHEDULE`）- 可参考 [crontab.guru](https://crontab.guru)
+    - 可选：设置 `RUN_ON_START=true` 以立即执行
+4. **启动容器：** `docker compose up -d`
+5. **查看日志：** `docker logs microsoft-rewards-script`
 
-使用此脚本可能使您的账户面临被禁止或暂停的风险，您已被警告！
-<br />
-使用此脚本风险自负！
+**注意：** 容器会在计划任务运行时随机延迟 5–50 分钟，以模拟更自然的行为。
+
+---
+
+## 📋 使用说明
+
+-   **浏览器实例：** 如果你在未关闭浏览器窗口（headless=false）的情况下停止脚本，请使用任务管理器或 `npm run kill-chrome-win` 清理进程
+-   **自动调度：** 建议每天至少运行两次，设置 `"runOnZeroPoints": false` 可在无积分时跳过
+-   **多账号支持：** 脚本支持集群模式——在 `config.json` 中配置 `clusters`
+
+---
+
+## ⚙️ 配置参考
+
+通过编辑 `src/config.json` 自定义脚本行为：
+
+### 核心设置
+
+| 设置              | 说明                       | 默认值                     |
+| ----------------- | -------------------------- | -------------------------- |
+| `baseURL`         | Microsoft Rewards 页面地址 | `https://rewards.bing.com` |
+| `sessionPath`     | 会话/指纹存储位置          | `sessions`                 |
+| `headless`        | 后台运行浏览器             | `false`（可见）            |
+| `parallel`        | 同时运行移动/桌面任务      | `true`                     |
+| `runOnZeroPoints` | 无积分时继续运行           | `false`                    |
+| `clusters`        | 并发账号实例数             | `1`                        |
+
+### 指纹设置
+
+| 设置                      | 说明                 | 默认值  |
+| ------------------------- | -------------------- | ------- |
+| `saveFingerprint.mobile`  | 重用移动端浏览器指纹 | `false` |
+| `saveFingerprint.desktop` | 重用桌面端浏览器指纹 | `false` |
+
+### 任务设置
+
+| 设置                       | 说明               | 默认值 |
+| -------------------------- | ------------------ | ------ |
+| `workers.doDailySet`       | 完成每日任务       | `true` |
+| `workers.doMorePromotions` | 完成促销活动       | `true` |
+| `workers.doPunchCards`     | 完成打卡活动       | `true` |
+| `workers.doDesktopSearch`  | 执行桌面搜索       | `true` |
+| `workers.doMobileSearch`   | 执行移动搜索       | `true` |
+| `workers.doDailyCheckIn`   | 完成每日签到       | `true` |
+| `workers.doReadToEarn`     | 完成阅读赚积分活动 | `true` |
+
+### 搜索设置
+
+| 设置                                     | 说明                   | 默认值     |
+| ---------------------------------------- | ---------------------- | ---------- |
+| `searchOnBingLocalQueries`               | 使用本地查询或在线获取 | `false`    |
+| `searchSettings.useGeoLocaleQueries`     | 生成基于地理位置的查询 | `false`    |
+| `searchSettings.scrollRandomResults`     | 随机滚动搜索结果       | `true`     |
+| `searchSettings.clickRandomResults`      | 点击随机结果链接       | `true`     |
+| `searchSettings.searchDelay`             | 搜索间隔（最小/最大）  | `3-5 分钟` |
+| `searchSettings.retryMobileSearchAmount` | 移动搜索重试次数       | `2`        |
+
+### 高级设置
+
+| 设置                      | 说明                    | 默认值              |
+| ------------------------- | ----------------------- | ------------------- |
+| `globalTimeout`           | 操作超时时间            | `30s`               |
+| `logExcludeFunc`          | 日志排除的函数          | `SEARCH-CLOSE-TABS` |
+| `webhookLogExcludeFunc`   | webhook 排除的函数      | `SEARCH-CLOSE-TABS` |
+| `proxy.proxyGoogleTrends` | 代理 Google Trends 请求 | `true`              |
+| `proxy.proxyBingTerms`    | 代理 Bing Terms 请求    | `true`              |
+
+### Webhook 设置
+
+| 设置                        | 说明                 | 默认值  |
+| --------------------------- | -------------------- | ------- |
+| `webhook.enabled`           | 启用 Discord 通知    | `false` |
+| `webhook.url`               | Discord webhook 地址 | `null`  |
+| `conclusionWebhook.enabled` | 启用仅总结 webhook   | `false` |
+| `conclusionWebhook.url`     | 总结 webhook 地址    | `null`  |
+
+---
+
+## ✨ 功能特性
+
+**账号管理：**
+
+-   ✅ 多账号支持
+-   ✅ 会话存储与持久化
+-   ✅ 支持双重验证（2FA）
+-   ✅ 支持无密码登录
+
+**自动化与控制：**
+
+-   ✅ 无头浏览器操作
+-   ✅ 集群支持（多账号同时运行）
+-   ✅ 可配置任务选择
+-   ✅ 代理支持
+-   ✅ 自动调度（Docker）
+
+**搜索与活动：**
+
+-   ✅ 桌面与移动搜索
+-   ✅ 模拟 Microsoft Edge 搜索
+-   ✅ 地理定位搜索查询
+-   ✅ 模拟滚动与点击链接
+-   ✅ 完成每日任务
+-   ✅ 促销活动
+-   ✅ 打卡活动
+-   ✅ 每日签到
+-   ✅ 阅读赚积分活动
+
+**测验与互动内容：**
+
+-   ✅ 测验自动答题（10 分和 30-40 分题型）
+-   ✅ This Or That 测验（随机答案）
+-   ✅ ABC 测验自动答题
+-   ✅ 投票完成
+-   ✅ 点击奖励
+
+**通知与监控：**
+
+-   ✅ Discord webhook 集成
+-   ✅ 专用总结 webhook
+-   ✅ 全面日志记录
+-   ✅ Docker 支持与监控
+
+---
+
+## ⚠️ 免责声明
+
+**风险自负！** 使用自动化脚本可能导致你的 Microsoft Rewards 账号被暂停或封禁。
+
+本脚本仅供学习交流使用。作者不对 Microsoft 采取的任何账号措施负责。
+
+---
+
+## 🤝 贡献说明
+
+本项目主要供个人使用，但欢迎贡献。请确保任何更改都与现有配置系统兼容。
