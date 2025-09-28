@@ -16,8 +16,10 @@ import { Workers } from './functions/Workers'
 
 import fs from 'fs'
 import path from 'path'
+import pkgData from '../package.json'
 import { Account } from './interface/Account'
 import Axios from './util/Axios'
+import type { LegacyEmbed } from './util/ConclusionWebhook'
 
 // Main bot class
 export class MicrosoftRewardsBot {
@@ -120,6 +122,7 @@ export class MicrosoftRewardsBot {
 
     private runMaster() {
         log('main', 'MAIN-PRIMARY', 'Primary process started')
+        const startedAt = new Date().toISOString()
 
         const accountChunks = this.utils.chunkArray(
             this.accounts,
@@ -151,15 +154,17 @@ export class MicrosoftRewardsBot {
             // Check if all workers have exited
             if (this.activeWorkers === 0) {
                 // All workers done -> send conclusion (if enabled) then exit
-                this.sendConclusion(this.accountSummaries).finally(() => {
-                    log(
-                        'main',
-                        'MAIN-WORKER',
-                        'All workers destroyed. Exiting main process!',
-                        'warn'
-                    )
-                    process.exit(0)
-                })
+                this.sendConclusion(this.accountSummaries, startedAt).finally(
+                    () => {
+                        log(
+                            'main',
+                            'MAIN-WORKER',
+                            'All workers destroyed. Exiting main process!',
+                            'warn'
+                        )
+                        process.exit(0)
+                    }
+                )
             }
         })
     }
@@ -176,6 +181,8 @@ export class MicrosoftRewardsBot {
     }
 
     private async runTasks(accounts: Account[]) {
+        const startedAt = new Date().toISOString()
+
         for (const account of accounts) {
             log(
                 'main',
@@ -336,7 +343,7 @@ export class MicrosoftRewardsBot {
             }
         } else {
             // Single process mode -> build and send conclusion directly
-            await this.sendConclusion(this.accountSummaries)
+            await this.sendConclusion(this.accountSummaries, startedAt)
         }
         process.exit()
     }
@@ -593,7 +600,10 @@ export class MicrosoftRewardsBot {
         }
     }
 
-    private async sendConclusion(summaries: AccountSummary[]) {
+    private async sendConclusion(
+        summaries: AccountSummary[],
+        startedAt: string
+    ) {
         const { ConclusionWebhook } = await import('./util/ConclusionWebhook')
         const cfg = this.config
         if (!cfg.conclusionWebhook || !cfg.conclusionWebhook.enabled) return
@@ -634,7 +644,7 @@ export class MicrosoftRewardsBot {
         }
 
         const avgDuration = totalDuration / totalAccounts
-        const embed = {
+        const embed: LegacyEmbed = {
             title: '🎯 Microsoft Rewards 脚本运行总结',
             description: `已处理 ${totalAccounts} 个账户${
                 accountsWithErrors
@@ -653,10 +663,8 @@ export class MicrosoftRewardsBot {
                 },
                 ...accountFields,
             ].slice(0, 25), // Discord max 25 fields
-            timestamp: new Date().toISOString(),
-            footer: {
-                text: '脚本总结 Webhook',
-            },
+            startedAt,
+            footer: { text: pkgData.name + ' v' + pkgData.version },
         }
 
         // Fallback plain text (rare) & embed send

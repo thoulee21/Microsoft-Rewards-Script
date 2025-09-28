@@ -13,12 +13,12 @@ interface LegacyEmbedFooter {
     text?: string
 }
 
-interface LegacyEmbed {
-    title?: string
+export interface LegacyEmbed {
+    title: string
     description?: string
     color?: number
     fields?: LegacyEmbedField[]
-    timestamp?: string
+    startedAt: string
     footer?: LegacyEmbedFooter
 }
 
@@ -42,6 +42,7 @@ function colorToHex(n?: number): string | undefined {
 function embedToSlackBlocks(e: LegacyEmbed) {
     const blocks: any[] = []
 
+    // Title becomes a header block
     if (e.title) {
         blocks.push({
             type: 'header',
@@ -53,6 +54,7 @@ function embedToSlackBlocks(e: LegacyEmbed) {
         })
     }
 
+    // Description becomes a section block
     if (e.description) {
         blocks.push({
             type: 'section',
@@ -60,6 +62,7 @@ function embedToSlackBlocks(e: LegacyEmbed) {
         })
     }
 
+    // Each field becomes its own section block
     if (e.fields && e.fields.length) {
         for (const f of e.fields.slice(0, 25)) {
             const name = truncate(f.name || '', 256)
@@ -69,21 +72,28 @@ function embedToSlackBlocks(e: LegacyEmbed) {
         }
     }
 
+    // Footer + timestamp combined into a single context block
     const footerParts: string[] = []
-    if (e.footer?.text) footerParts.push(truncate(e.footer.text, 200))
-    if (e.timestamp) {
+
+    if (e.footer?.text) {
+        footerParts.push(truncate(e.footer.text, 200))
+    }
+    if (e.startedAt) {
         try {
-            const dt = new Date(e.timestamp)
-            if (!isNaN(dt.getTime()))
+            const dt = new Date(e.startedAt)
+            if (!isNaN(dt.getTime())) {
                 footerParts.push(
-                    dt.toLocaleString(undefined, {
+                    dt.toLocaleString('zh-CN', {
                         timeZone: 'Asia/Shanghai',
+                        hour12: false,
                     })
                 )
+            }
         } catch {
             // ignore bad timestamp
         }
     }
+
     if (footerParts.length) {
         blocks.push({
             type: 'context',
