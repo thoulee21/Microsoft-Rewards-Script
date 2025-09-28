@@ -622,12 +622,12 @@ export class MicrosoftRewardsBot {
             const diff = s.totalCollected
             const duration = formatDuration(s.durationMs)
             const valueLines: string[] = [
-                `Points: ${s.initialTotal} → ${s.endTotal} ( +${diff} )`,
-                `Breakdown: 🖥️ ${s.desktopCollected} | 📱 ${s.mobileCollected}`,
-                `Duration: ⏱️ ${duration}`,
+                `积分: ${s.initialTotal} → ${s.endTotal} ( +${diff} )`,
+                `明细: 🖥️ ${s.desktopCollected} | 📱 ${s.mobileCollected}`,
+                `时长: ⏱️ ${duration}`,
             ]
             if (s.errors.length) {
-                valueLines.push(`Errors: ${s.errors.slice(0, 2).join(' | ')}`)
+                valueLines.push(`错误: ${s.errors.slice(0, 2).join(' | ')}`)
             }
             accountFields.push({
                 name: `${statusEmoji} ${s.email}`.substring(0, 256),
@@ -638,30 +638,32 @@ export class MicrosoftRewardsBot {
 
         const avgDuration = totalDuration / totalAccounts
         const embed = {
-            title: '🎯 Microsoft Rewards Summary',
-            description: `Processed **${totalAccounts}** account(s)${
-                accountsWithErrors ? ` • ${accountsWithErrors} with issues` : ''
+            title: '🎯 Microsoft Rewards 脚本运行总结',
+            description: `已处理 **${totalAccounts}** 个账户${
+                accountsWithErrors
+                    ? ` • ${accountsWithErrors} 个账户存在问题`
+                    : ''
             }`,
             color: accountsWithErrors ? 0xffaa00 : 0x32cd32,
             fields: [
                 {
-                    name: 'Global Totals',
+                    name: '总体统计',
                     value: [
-                        `Total Points: ${totalInitial} → ${totalEnd} ( +${totalCollected} )`,
-                        `Average Duration: ${formatDuration(avgDuration)}`,
-                        `Cumulative Runtime: ${formatDuration(totalDuration)}`,
+                        `总积分: ${totalInitial} → ${totalEnd} ( +${totalCollected} )`,
+                        `平均时长: ${formatDuration(avgDuration)}`,
+                        `累计运行时长: ${formatDuration(totalDuration)}`,
                     ].join('\n'),
                 },
                 ...accountFields,
             ].slice(0, 25), // Discord max 25 fields
             timestamp: new Date().toISOString(),
             footer: {
-                text: 'Script conclusion webhook',
+                text: '脚本总结 Webhook',
             },
         }
 
         // Fallback plain text (rare) & embed send
-        const fallback = `Microsoft Rewards Summary\nAccounts: ${totalAccounts}\nTotal: ${totalInitial} -> ${totalEnd} (+${totalCollected})\nRuntime: ${formatDuration(
+        const fallback = `Microsoft Rewards 脚本运行总结\n账户数: ${totalAccounts}\n总积分: ${totalInitial} -> ${totalEnd} (+${totalCollected})\n运行时长: ${formatDuration(
             totalDuration
         )}`
         await ConclusionWebhook(cfg, fallback, { embeds: [embed] })
