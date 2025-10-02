@@ -19,10 +19,10 @@ services:
             # Add scheduled start-time randomization (uncomment to customize or disable, default: enabled)
             # MIN_SLEEP_MINUTES: "5"
             # MAX_SLEEP_MINUTES: "10"
-            SKIP_RANDOM_SLEEP: 'true'
+            SKIP_RANDOM_SLEEP: 'false'
 
             # Optionally set how long to wait before killing a stuck script run (prevents blocking future runs, default: 8 hours)
-            STUCK_PROCESS_TIMEOUT_HOURS: '2'
+            STUCK_PROCESS_TIMEOUT_HOURS: '8'
 
         # Optional resource limits for the container
         mem_limit: 1g
