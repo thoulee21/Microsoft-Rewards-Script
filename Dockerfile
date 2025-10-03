@@ -42,9 +42,6 @@ RUN apt-get update \
          cron gettext-base tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure Playwright uses preinstalled browsers
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-
 # Copy package files first for better caching
 COPY --from=builder /usr/src/microsoft-rewards-script/package*.json ./
 
@@ -58,6 +55,9 @@ RUN if [ -f package-lock.json ]; then \
       npm install --production --ignore-scripts; \
     fi
 
+# Install Edge browser for Playwright
+RUN npx playwright install msedge
+
 # Copy built application
 COPY --from=builder /usr/src/microsoft-rewards-script/dist ./dist
 
@@ -67,7 +67,7 @@ COPY --chmod=644 src/crontab.template /etc/cron.d/microsoft-rewards-cron.templat
 COPY --chmod=755 entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Default TZ (overridden by user via environment)
-ENV TZ=UTC
+ENV TZ=Asia/Shanghai
 
 # Entrypoint handles TZ, initial run toggle, cron templating & launch
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

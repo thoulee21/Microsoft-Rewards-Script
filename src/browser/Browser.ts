@@ -42,7 +42,7 @@ class Browser {
         let browser: any
         try {
             browser = await playwright.chromium.launch({
-                //channel: 'msedge', // Uses Edge instead of chrome
+                channel: 'msedge', // Uses Edge instead of chrome
                 headless: this.bot.config.headless,
                 ...(proxy.url && {
                     proxy: {
