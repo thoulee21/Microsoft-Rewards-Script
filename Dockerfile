@@ -7,6 +7,9 @@ WORKDIR /usr/src/microsoft-rewards-script
 
 ENV PLAYWRIGHT_BROWSERS_PATH=0
 
+# Set sources.list mirror
+COPY sources.list /etc/apt/sources.list
+
 # Copy package files
 COPY package.json package-lock.json tsconfig.json ./
 
