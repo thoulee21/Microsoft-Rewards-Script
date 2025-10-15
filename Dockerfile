@@ -71,6 +71,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libdouble-conversion3 \
     && rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
+# Update npm to the latest version
+RUN npm install -g npm@latest
+RUN npm cache clean --force
+
 # Copy compiled application and dependencies from builder stage
 COPY --from=builder /usr/src/microsoft-rewards-script/dist ./dist
 COPY --from=builder /usr/src/microsoft-rewards-script/package*.json ./
