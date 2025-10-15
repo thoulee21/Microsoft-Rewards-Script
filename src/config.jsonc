@@ -15,7 +15,7 @@
         // Run desktop+mobile in parallel (needs more resources). If false, runs sequentially.
         "parallel": false,
         // If false and there are 0 points available, the run is skipped early to save time.
-        "runOnZeroPoints": false,
+        "runOnZeroPoints": true,
         // Number of account clusters (processes) to run concurrently.
         "clusters": 1,
         // Number of passes per invocation (advanced; usually 1).
@@ -75,7 +75,8 @@
         "gestureScrollProb": 0.4,
         // Optional local-time windows for execution (e.g., ["08:30-11:00", "19:00-22:00"]).
         // If provided, runs will wait until inside a window before starting.
-        "allowedWindows": []
+        "allowedWindows": [],
+        "randomOffDaysPerWeek": 0
     },
 
     // Optional monthly "vacation" block: skip a contiguous range of days to look more human.
@@ -83,7 +84,7 @@
     // block between minDays and maxDays is selected (e.g., 2–4 days) and all runs within
     // that date range are skipped. The chosen block is logged at the start of the month.
     "vacation": {
-        "enabled": true,
+        "enabled": false,
         "minDays": 2,
         "maxDays": 4
     },
@@ -173,7 +174,7 @@
     
     "schedule": {
         // Built-in scheduler (no cron needed in container). Uses the IANA time zone below.
-        "enabled": false,
+        "enabled": true,
         // Choose YOUR preferred time format:
         // - US style with AM/PM → set useAmPm: true and edit time12 (e.g., "9:00 AM")
         // - 24-hour style      → set useAmPm: false and edit time24 (e.g., "09:00")
@@ -182,15 +183,15 @@
         "time12": "9:00 AM",
         "time24": "09:00",
         // IANA timezone for scheduling (set to your region), e.g. "Europe/Paris" or "America/New_York"
-        "timeZone": "America/New_York",
+        "timeZone": "Asia/Shanghai",
         // If true, run one pass immediately when the process starts
-        "runImmediatelyOnStart": false
+        "runImmediatelyOnStart": true
     },
     
     "update": {
         // Optional post-run auto-update
-        "git": true,
-        "docker": false,
+        "git": false,
+        "docker": true,
         // Custom updater script path (relative to repo root)
         "scriptPath": "setup/update/update.mjs"
     }
