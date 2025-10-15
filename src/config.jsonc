@@ -8,7 +8,7 @@
         // Keep headless=false so the browser window stays visible by default
         "headless": false,
         // Max time to wait for common operations (supports ms/s/min: e.g. 30000, "30s", "2min")
-        "globalTimeout": "30s"
+        "globalTimeout": "1min"
     },
     
     "execution": {
