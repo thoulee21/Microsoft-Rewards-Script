@@ -9,3 +9,4 @@ accounts.dev.json
 accounts.main.json
 .DS_Store
 .playwright-chromium-installed
+reports/
